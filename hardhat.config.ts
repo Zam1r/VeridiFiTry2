@@ -23,6 +23,7 @@ const COSTON2_RPC_URL = process.env.COSTON2_RPC_URL ?? "";
 const SONGBIRD_RPC_URL = process.env.SONGBIRD_RPC_URL ?? "";
 const FLARE_RPC_URL = process.env.FLARE_RPC_URL ?? "";
 const XRPLEVM_RPC_URL_TESTNET = process.env.XRPLEVM_RPC_URL_TESTNET ?? "";
+const PLASMA_RPC_URL = process.env.PLASMA_RPC_URL ?? "https://testnet-rpc.plasmadlt.com";
 
 const VERIFIER_API_KEY_TESTNET = process.env.VERIFIER_API_KEY_TESTNET ?? "";
 
@@ -98,6 +99,13 @@ const config: HardhatUserConfig = {
             url: `${XRPLEVM_RPC_URL_TESTNET}`,
             accounts: [`${PRIVATE_KEY}`],
             chainId: 1449000,
+        },
+        plasmaTestnet: {
+            url: PLASMA_RPC_URL,
+            accounts: [`${PRIVATE_KEY}`],
+            // Chain ID discovered from network: 9745
+            chainId: 9745, // Verified: Actual chain ID from Plasma testnet
+            gasPrice: 0, // Paymaster covers gas (verify with Plasma team)
         },
     },
     etherscan: {
