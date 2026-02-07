@@ -10,12 +10,19 @@ const { VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } =
 // Make sure to set VERIDIFI_CORE_ADDRESS in your .env file or update the address below
 
 // Carbon Intensity API configuration
+// NOTE: If the main endpoint fails, try the regional endpoint below
 const apiUrl = "https://api.carbonintensity.org.uk/intensity";
+// Alternative endpoint (uncomment to try):
+// const apiUrl = "https://api.carbonintensity.org.uk/regional/intensity/2024-01-01T00:00Z/2024-01-01T23:59Z/postcode/OX1";
+
 const httpMethod = "GET";
-// Add User-Agent header - many APIs require this to prevent bot blocking
+
+// Simplified headers - some APIs block complex User-Agent strings
+// Try minimal headers first, as some APIs block overly complex headers
 const headers = JSON.stringify({
-    "User-Agent": "Mozilla/5.0 (compatible; FlareFDC/1.0)",
-    Accept: "application/json",
+    "Accept": "application/json",
+    // Minimal User-Agent - some APIs block complex browser strings
+    "User-Agent": "FlareFDC/1.0",
 });
 const queryParams = "{}";
 const body = "{}";
