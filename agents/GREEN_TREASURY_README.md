@@ -50,9 +50,9 @@ Oracle Scout → Environmental Auditor → Treasury Manager → [Conditional] �
 
 ## Energy Status Classification
 
-- **Green**: < 50 gCO2/kWh 🟢
-- **Amber**: 50-150 gCO2/kWh 🟡
-- **Red**: > 150 gCO2/kWh 🔴
+- **Green**: < 50 gCO2/kWh
+- **Amber**: 50-150 gCO2/kWh
+- **Red**: > 150 gCO2/kWh
 
 ## Setup
 
@@ -99,11 +99,11 @@ The system uses terminal-style logging:
 [HH:MM:SS] [Scout] -> XRP/USD: $0.6234 (age: 45s)
 [HH:MM:SS] [Scout] -> Market Report generated. Sending to Manager...
 [HH:MM:SS] [Auditor] -> Fetching carbon intensity for Oxford region...
-[HH:MM:SS] [Auditor] -> Carbon Intensity: 42 gCO2/kWh - Status: 🟢 Green
+[HH:MM:SS] [Auditor] -> Carbon Intensity: 42 gCO2/kWh - Status: Green
 [HH:MM:SS] [Manager] -> XRP Price: $0.6234 | Energy Status: Green (42 gCO2/kWh)
 [HH:MM:SS] [Manager] -> DECISION: EXECUTE_BUY - Energy is Green...
 [HH:MM:SS] [Settlement] -> EXECUTE_BUY signal received. Initiating mock Plasma Payment...
-[HH:MM:SS] [Settlement] -> ✅ Plasma Payment executed successfully!
+[HH:MM:SS] [Settlement] -> Plasma Payment executed successfully!
 ```
 
 ## Contract Requirements
@@ -167,7 +167,7 @@ Modify the `environmental_auditor_agent` function to use a different postcode or
 
 ```
 ================================================================================
-🌱 GREEN TREASURY - Autonomous Multi-Agent Orchestration System
+GREEN TREASURY - Autonomous Multi-Agent Orchestration System
 ================================================================================
 
 [14:23:15] [Scout] -> Polling FTSO for BTC/USD and XRP/USD prices...
@@ -175,30 +175,30 @@ Modify the `environmental_auditor_agent` function to use a different postcode or
 [14:23:16] [Scout] -> XRP/USD: $0.6234 (age: 45s)
 [14:23:16] [Scout] -> Market Report generated. Sending to Manager...
 [14:23:16] [Auditor] -> Fetching carbon intensity for Oxford region...
-[14:23:17] [Auditor] -> Carbon Intensity: 42 gCO2/kWh - Status: 🟢 Green
+[14:23:17] [Auditor] -> Carbon Intensity: 42 gCO2/kWh - Status: Green
 [14:23:17] [Manager] -> DECISION: EXECUTE_BUY - Energy is Green (42 gCO2/kWh < 50) AND XRP Price ($0.6234) is below target ($1.10)
 [14:23:17] [Settlement] -> EXECUTE_BUY signal received. Initiating mock Plasma Payment...
-[14:23:18] [Settlement] -> ✅ Plasma Payment executed successfully!
+[14:23:18] [Settlement] -> Plasma Payment executed successfully!
 
 ================================================================================
-📊 FINAL TREASURY REPORT
+FINAL TREASURY REPORT
 ================================================================================
 
-📈 Market Report:
+Market Report:
    BTC/USD: $65,432.10
    XRP/USD: $0.6234
    Data Freshness: BTC 45s, XRP 45s
 
-🌍 Carbon Audit:
+Carbon Audit:
    Intensity: 42 gCO2/kWh
-   Status: 🟢 Green
+   Status: Green
    Region: Oxford
    Source: FDC (On-Chain via VeridiFiCore)
 
-💼 Treasury Decision: EXECUTE_BUY
+Treasury Decision: EXECUTE_BUY
    Reason: Energy is Green (42 gCO2/kWh < 50) AND XRP Price ($0.6234) is below target ($1.10). Executing buy signal.
 
-💸 Settlement Status: COMPLETED
+Settlement Status: COMPLETED
    Amount: 1.0 USDT
    Recipient: 0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb
    TX Hash: 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f

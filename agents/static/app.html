@@ -42,15 +42,19 @@
                 </button>
                 <div class="menu-dropdown" id="menu-dropdown">
                     <a href="#" class="menu-item" id="menu-profile">
-                        <span class="menu-icon">👤</span>
+                        <span class="menu-icon"></span>
                         <span>Profile</span>
                     </a>
                     <a href="#" class="menu-item" id="menu-settings">
-                        <span class="menu-icon">⚙️</span>
+                        <span class="menu-icon"></span>
                         <span>Settings</span>
                     </a>
+                    <a href="#" class="menu-item" id="menu-future-plans">
+                        <span class="menu-icon"></span>
+                        <span>Future Plans</span>
+                    </a>
                     <a href="#" class="menu-item" id="menu-logout" onclick="handleLogout(); return false;">
-                        <span class="menu-icon">🚪</span>
+                        <span class="menu-icon"></span>
                         <span>Log Out</span>
                     </a>
                 </div>
@@ -151,6 +155,21 @@
         </div>
     </div>
 
+    <!-- Future Plans Modal -->
+    <div class="modal" id="future-plans-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Future Plans</h2>
+                <button type="button" class="modal-close" id="close-future-plans">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="future-plans-section">
+                    <h1 style="text-align: center; font-size: 2.5rem; margin: 2rem 0; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Future Plans</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Admin Dashboard Modal -->
     <div class="modal" id="admin-modal">
         <div class="modal-content admin-modal-content">
@@ -232,7 +251,7 @@
         <!-- Developer Green Treasury Tab -->
         <section id="developer-green-treasury" class="tab-content">
             <div class="page-header">
-                <h1>🌱 Developer Green Treasury</h1>
+                <h1>Developer Green Treasury</h1>
                 <p class="subtitle">Autonomous Multi-Agent Orchestration System</p>
             </div>
             
@@ -321,15 +340,17 @@
 
             <!-- AI Agent Log -->
             <div class="treasury-card">
-                <div class="treasury-card-title">
-                    🤖 AI Agent Log
+                <div class="treasury-card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>⚡ AI Agent Log</span>
                 </div>
-                <div class="treasury-ai-log-container">
-                    <div class="treasury-ai-log" id="treasury-ai-log">
-                        <div class="treasury-log-entry">
-                            <span class="treasury-log-timestamp">[00:00:00]</span>
-                            <span class="treasury-log-agent">[System]</span>
-                            <span class="treasury-log-message">Initializing Green Treasury system...</span>
+                <div class="developer-terminal-container" style="height: 500px;">
+                    <div class="terminal-body">
+                        <div id="treasury-ai-log" class="terminal-content">
+                            <div class="terminal-log terminal-log-system">
+                                <span class="log-timestamp">[--:--:--]</span>
+                                <span class="log-icon">ℹ️</span>
+                                <span class="log-message">Initializing Green Treasury system...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -409,31 +430,35 @@
             </div>
 
             <!-- Carbon Credit Mint Section -->
-            <div class="mint-section">
-                <div class="mint-header">
-                    <h2>🪙 Carbon Credit Minting Activity</h2>
-                    <div class="mint-stats">
-                        <div class="mint-stat">
-                            <span class="mint-stat-label">Total in Circulation</span>
-                            <span class="mint-stat-value" id="total-in-circulation">0 CC</span>
+            <div class="mint-terminal-section">
+                <div class="mint-terminal">
+                    <div class="terminal-header">
+                        <div class="terminal-title">
+                            <span class="terminal-icon">⚡</span>
+                            <span>Carbon Credit Minting Terminal</span>
                         </div>
-                        <div class="mint-stat">
-                            <span class="mint-stat-label">Total Minted</span>
-                            <span class="mint-stat-value" id="total-minted">0 CC</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="mint-activity-container">
-                    <div class="mint-activity-header">
-                        <h3>Recent Mint Events</h3>
-                        <span class="mint-status-indicator" id="mint-status-indicator">
+                        <div class="terminal-status">
                             <span class="status-dot"></span>
-                            <span>Monitoring Plasma Network</span>
-                        </span>
+                            <span>MONITORING</span>
+                        </div>
                     </div>
-                    <div class="mint-events-list" id="mint-events-list">
-                        <div class="mint-event-placeholder">
-                            <p>No mint events yet. Waiting for Plasma to mint carbon credits...</p>
+                    <div class="terminal-stats-bar">
+                        <div class="terminal-stat">
+                            <span class="terminal-stat-label">Total in Circulation</span>
+                            <span class="terminal-stat-value" id="total-in-circulation">0 CC</span>
+                        </div>
+                        <div class="terminal-stat">
+                            <span class="terminal-stat-label">Total Minted</span>
+                            <span class="terminal-stat-value" id="total-minted">0 CC</span>
+                        </div>
+                    </div>
+                    <div class="terminal-body">
+                        <div id="mint-terminal-content" class="terminal-content">
+                            <div class="terminal-log terminal-log-system">
+                                <span class="log-timestamp">[--:--:--]</span>
+                                <span class="log-icon">ℹ️</span>
+                                <span class="log-message">Monitoring Plasma Network for carbon credit minting activity...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -571,7 +596,7 @@
             <!-- Company Reports Section -->
             <div class="company-reports-section">
                 <div class="reports-header">
-                    <h2>📊 Company Reports</h2>
+                    <h2>Company Reports</h2>
                     <p class="reports-subtitle">Recent CO₂ emissions reports and carbon credit verification</p>
                 </div>
                 <div class="reports-container" id="company-reports-container">
@@ -785,28 +810,9 @@
                 </div>
             </div>
             <div id="satellite-animation" class="satellite-animation hidden">
-                <div id="satellite-left" class="satellite">🛰️</div>
-                <div id="satellite-right" class="satellite">🛰️</div>
-                <div id="ground-satellite" class="ground-satellite">
-                    <pre class="satellite-dish-art">            ___
-           /   \
-          /     \
-         |       |
-         |_______|
-          \     /
-           \___/
-            |
-            |
-           / \
-          /   \
-         |     |
-         |_____|
-          \   /
-           \_/</pre>
-                </div>
+                <!-- Satellites will be dynamically created -->
                 <svg id="satellite-lines" class="satellite-lines">
-                    <line id="line-left-ground" class="signal-line ground-line"></line>
-                    <line id="line-right-ground" class="signal-line ground-line"></line>
+                    <!-- Lines will be dynamically created -->
                 </svg>
                 <div id="loading-bar-container" class="loading-bar-container">
                     <div id="loading-bar" class="loading-bar"></div>

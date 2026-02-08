@@ -183,6 +183,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: -0.3px;
         }
 
         .card-title::before {
@@ -191,6 +192,11 @@
             height: 20px;
             background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
             border-radius: 2px;
+        }
+
+        /* Remove emoji from card title if present */
+        .card-title::after {
+            display: none;
         }
 
         /* Live Truth Feed */
@@ -420,96 +426,207 @@
 
         /* AI Log */
         .ai-log-container {
-            height: 340px;
+            height: 400px;
             display: flex;
             flex-direction: column;
         }
 
         .ai-log {
             flex: 1;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            padding: 12px;
+            background: linear-gradient(180deg, #0f1117 0%, #0a0c12 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 16px;
             overflow-y: auto;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-            font-size: 0.75rem;
-            line-height: 1.5;
-            color: #d4d4d4;
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            color: #e4e4e7;
+            position: relative;
+        }
+
+        .ai-log::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.3), transparent);
         }
 
         .ai-log::-webkit-scrollbar {
-            width: 10px;
+            width: 6px;
         }
 
         .ai-log::-webkit-scrollbar-track {
-            background: #1a1a1a;
+            background: transparent;
         }
 
         .ai-log::-webkit-scrollbar-thumb {
-            background: #404040;
-            border: 1px solid #1a1a1a;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
         }
 
         .ai-log::-webkit-scrollbar-thumb:hover {
-            background: #505050;
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .log-entry {
-            margin: 0;
-            padding: 2px 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            background: transparent;
+            transition: all 0.2s ease;
+            border-left: 2px solid transparent;
+            position: relative;
+            animation: logEntryFadeIn 0.3s ease-out;
+        }
+
+        @keyframes logEntryFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .log-entry:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-left-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .log-entry:last-child {
+            margin-bottom: 0;
         }
 
         .log-timestamp {
-            color: #6a9955;
+            color: #71717a;
             font-size: 0.75rem;
-            margin-right: 8px;
+            font-weight: 500;
+            min-width: 68px;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.3px;
         }
 
-        .log-agent {
-            color: #4ec9b0;
-            font-weight: 500;
-            margin-right: 8px;
+        .log-agent-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            min-width: 70px;
+            justify-content: center;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
         }
 
         .log-message {
-            color: #d4d4d4;
+            color: #e4e4e7;
+            flex: 1;
+            font-weight: 400;
+            line-height: 1.6;
         }
 
-        .log-system .log-agent { color: #569cd6; }
-        .log-scout .log-agent { color: #4ec9b0; }
-        .log-auditor .log-agent { color: #dcdcaa; }
-        .log-manager .log-agent { color: #4fc1ff; }
-        .log-settlement .log-agent { color: #ce9178; }
+        .log-message strong {
+            color: #f4f4f5;
+            font-weight: 600;
+        }
+
+        /* Agent-specific styling */
+        .log-system .log-agent-badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .log-scout .log-agent-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .log-auditor .log-agent-badge {
+            background: rgba(234, 179, 8, 0.15);
+            color: #fbbf24;
+            border-color: rgba(234, 179, 8, 0.3);
+        }
+
+        .log-manager .log-agent-badge {
+            background: rgba(99, 102, 241, 0.15);
+            color: #818cf8;
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .log-settlement .log-agent-badge {
+            background: rgba(251, 146, 60, 0.15);
+            color: #fb923c;
+            border-color: rgba(251, 146, 60, 0.3);
+        }
+
+        /* Warning/Error message styling */
+        .log-entry .log-message:has-text("WARNING"),
+        .log-entry .log-message:has-text("ERROR") {
+            color: #fbbf24;
+        }
+
+        .log-entry .log-message:contains("DECISION") {
+            color: #60a5fa;
+            font-weight: 500;
+        }
 
         .status-indicator {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 2s infinite;
+            margin-right: 6px;
+            animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
 
         .status-online {
-            background: #00ff88;
+            background: #10b981;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
         }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        @keyframes pulse-dot {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
         }
 
         .connection-status {
-            text-align: center;
-            padding: 8px;
-            margin-top: 8px;
-            border-top: 1px solid #2a2a2a;
-            background: #0a0a0a;
-            font-size: 0.8rem;
-            color: #6a9955;
-            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 16px;
+            margin-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 17, 23, 0.5);
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 500;
+            border-radius: 0 0 8px 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .connection-status .status-indicator {
+            margin-right: 8px;
         }
 
         @media (max-width: 768px) {
@@ -611,8 +728,8 @@
             <div class="ai-log-container">
                 <div class="ai-log" id="aiLog">
                     <div class="log-entry log-system">
-                        <span class="log-timestamp">[00:00:00]</span>
-                        <span class="log-agent">[System]</span>
+                        <span class="log-timestamp">00:00:00</span>
+                        <span class="log-agent-badge">System</span>
                         <span class="log-message">Initializing Green Treasury system...</span>
                     </div>
                 </div>
@@ -820,13 +937,20 @@
                 'system': 'System'
             };
             const agentClass = `log-${agent}`;
+            const agentName = agentNames[agent] || agent;
+
+            // Format message with emphasis for keywords
+            let formattedMessage = message
+                .replace(/\b(WARNING|ERROR|DECISION|VERIFIED|UNVERIFIED|FDC)\b/gi, '<strong>$1</strong>')
+                .replace(/\b(WAIT|TRADE|BUY|SELL|CONSENSUS)\b/gi, '<strong>$1</strong>')
+                .replace(/\$[\d,]+\.?\d*/g, '<strong>$&</strong>');
 
             const entry = document.createElement('div');
             entry.className = `log-entry ${agentClass}`;
             entry.innerHTML = `
-                <span class="log-timestamp">[${logTimestamp}]</span>
-                <span class="log-agent">[${agentNames[agent] || agent}]</span>
-                <span class="log-message">${message}</span>
+                <span class="log-timestamp">${logTimestamp}</span>
+                <span class="log-agent-badge">${agentName}</span>
+                <span class="log-message">${formattedMessage}</span>
             `;
 
             // Append to bottom (new entries appear at bottom)
@@ -845,9 +969,9 @@
         function updateConnectionStatus(connected) {
             const statusEl = document.getElementById('connectionStatus');
             if (connected) {
-                statusEl.innerHTML = '<span class="status-indicator status-online"></span> Connected to backend';
+                statusEl.innerHTML = '<span class="status-indicator status-online"></span>Connected to backend';
             } else {
-                statusEl.innerHTML = '<span class="status-indicator" style="background: #ff4444;"></span> Disconnected - Using mock data';
+                statusEl.innerHTML = '<span class="status-indicator" style="background: #ef4444; box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);"></span>Disconnected - Using mock data';
             }
         }
 

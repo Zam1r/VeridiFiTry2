@@ -1137,210 +1137,156 @@ h4 { font-size: 0.95rem; }
 
 /* News Section */
 /* Carbon Credit Mint Section */
-.mint-section {
-    background: var(--background-card);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: var(--spacing-lg);
+.mint-terminal-section {
     max-width: 1000px;
     margin: 0 auto var(--spacing-lg);
     width: 100%;
     box-sizing: border-box;
 }
 
-.mint-header {
+.mint-terminal {
+    background: rgba(10, 10, 20, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 212, 170, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 212, 170, 0.2);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 400px;
 }
 
-.mint-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.mint-stats {
+.terminal-stats-bar {
     display: flex;
     gap: var(--spacing-lg);
+    padding: 12px 16px;
+    background: rgba(0, 212, 170, 0.05);
+    border-bottom: 1px solid rgba(0, 212, 170, 0.2);
     flex-wrap: wrap;
 }
 
-.mint-stat {
+.terminal-stat {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: 4px;
 }
 
-.mint-stat-label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
+.terminal-stat-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    font-weight: 500;
 }
 
-.mint-stat-value {
-    font-size: 1.5rem;
+.terminal-stat-value {
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary-color);
     font-variant-numeric: tabular-nums;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
 }
 
-.mint-activity-container {
-    margin-top: var(--spacing-lg);
+/* Mint terminal uses the same terminal log styles as flare-terminal */
+.mint-terminal .terminal-body {
+    flex: 1;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    min-height: 0;
 }
 
-.mint-activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-md);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
-}
-
-.mint-activity-header h3 {
-    margin: 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-}
-
-.mint-status-indicator {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 0.875rem;
-    color: var(--text-muted);
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--primary-color);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(1.2);
-    }
-}
-
-.mint-events-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-    max-height: 400px;
+.mint-terminal .terminal-content {
+    height: 100%;
+    padding: 10px 14px;
     overflow-y: auto;
-}
-
-.mint-event-placeholder {
-    padding: var(--spacing-lg);
-    text-align: center;
-    color: var(--text-muted);
-    font-style: italic;
-}
-
-.mint-event {
-    padding: var(--spacing-md);
-    background: var(--background-hover);
-    border-radius: 6px;
-    border-left: 3px solid var(--primary-color);
-    transition: all 0.2s ease;
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.mint-event:hover {
-    background: var(--background-active);
-    transform: translateX(2px);
-}
-
-.mint-event-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-xs);
-    flex-wrap: wrap;
-    gap: var(--spacing-xs);
-}
-
-.mint-event-title {
-    font-weight: 600;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-}
-
-.mint-event-amount {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    font-variant-numeric: tabular-nums;
-}
-
-.mint-event-details {
+    overflow-x: hidden;
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-size: 10px;
+    line-height: 1.6;
+    color: #e0e0e0;
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xs);
-    margin-top: var(--spacing-xs);
+    scroll-behavior: smooth;
 }
 
-.mint-event-detail {
+.mint-terminal .terminal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.mint-terminal .terminal-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.mint-terminal .terminal-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 170, 0.5);
+    border-radius: 3px;
+}
+
+.mint-terminal .terminal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 170, 0.7);
+}
+
+.mint-terminal .terminal-log {
+    margin-bottom: 4px;
+    padding: 2px 0;
     display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    align-items: flex-start;
+    gap: 8px;
+    word-wrap: break-word;
+    animation: log-fade-in 0.3s ease;
 }
 
-.mint-event-detail-icon {
+.mint-terminal .log-timestamp {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 11px;
+    min-width: 80px;
+    flex-shrink: 0;
+}
+
+.mint-terminal .log-icon {
+    font-size: 12px;
+    flex-shrink: 0;
     width: 16px;
-    height: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    text-align: center;
 }
 
-.mint-event-timestamp {
-    font-family: 'SF Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--text-muted);
+.mint-terminal .log-message {
+    flex: 1;
+    color: #e0e0e0;
+    word-break: break-word;
 }
 
-.mint-event-tx-hash {
-    font-family: 'SF Mono', monospace;
-    font-size: 0.75rem;
-    color: var(--primary-color);
+.mint-terminal .terminal-log-success .log-message {
+    color: #51cf66;
+}
+
+.mint-terminal .terminal-log-info .log-message {
+    color: #74b9ff;
+}
+
+.mint-terminal .terminal-log-system .log-message {
+    color: #e0e0e0;
+}
+
+.mint-terminal .terminal-log-error .log-message {
+    color: #ff6b6b;
+}
+
+.mint-terminal .terminal-log .log-message a {
+    color: #74b9ff;
     text-decoration: none;
     transition: color 0.2s ease;
 }
 
-.mint-event-tx-hash:hover {
-    color: var(--text-primary);
+.mint-terminal .terminal-log .log-message a:hover {
+    color: #a5d8ff;
     text-decoration: underline;
+}
+
+.mint-terminal .terminal-log .log-message strong {
+    color: #e0e0e0;
+    font-weight: 600;
 }
 
 .news-section {
@@ -2745,12 +2691,17 @@ h4 { font-size: 0.95rem; }
 
 /* Scanning Tab Styles */
 #scanning {
-    position: relative;
-    width: 100%;
-    max-width: 100vw;
+    position: fixed;
+    top: 48px; /* Account for navbar height */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
     height: calc(100vh - 48px);
+    max-width: 100vw;
     overflow: hidden;
     box-sizing: border-box;
+    z-index: 1;
 }
 
 #cesium-container {
@@ -2760,6 +2711,8 @@ h4 { font-size: 0.95rem; }
     position: absolute;
     top: 0;
     left: 0;
+    right: 0;
+    bottom: 0;
     pointer-events: auto; /* Ensure mouse events work */
     touch-action: none; /* Prevent default touch behavior that might interfere */
     cursor: grab; /* Show grab cursor */
@@ -3061,7 +3014,6 @@ h4 { font-size: 0.95rem; }
 
 .satellite {
     position: absolute;
-    font-size: 48px;
     transform: translate(-50%, -50%);
     filter: drop-shadow(0 0 10px rgba(0, 212, 170, 0.8));
     animation: satellite-float 3s ease-in-out infinite;
@@ -3070,6 +3022,17 @@ h4 { font-size: 0.95rem; }
 
 .satellite.risen {
     /* Position will be set dynamically via JavaScript */
+}
+
+.satellite-art {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #00d4aa;
+    text-shadow: 0 0 8px rgba(0, 212, 170, 1), 0 0 15px rgba(0, 212, 170, 0.6);
+    line-height: 1.0;
+    white-space: pre;
+    user-select: none;
 }
 
 @keyframes satellite-float {
@@ -4612,87 +4575,36 @@ h4 { font-size: 0.95rem; }
     font-weight: 400;
 }
 
-.treasury-ai-log-container {
-    height: 340px;
-    display: flex;
-    flex-direction: column;
-    max-width: 1000px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.treasury-ai-log {
-    flex: 1;
-    background: var(--background-darker);
-    border-radius: 12px;
-    padding: 16px;
-    overflow-y: auto;
-    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
-    font-size: 0.9rem;
+/* AI Agent Log now uses the same terminal styling as Agent Terminal */
+.developer-terminal-container .terminal-content {
+    font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+    font-size: 10px;
     line-height: 1.6;
-    border: 1px solid var(--border-color);
+    color: #e0e0e0;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px 14px;
 }
 
-.treasury-ai-log::-webkit-scrollbar {
-    width: 8px;
+.developer-terminal-container .terminal-content::-webkit-scrollbar {
+    width: 6px;
 }
 
-.treasury-ai-log::-webkit-scrollbar-track {
-    background: var(--background-card);
-    border-radius: 4px;
+.developer-terminal-container .terminal-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
 }
 
-.treasury-ai-log::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 4px;
-    opacity: 0.3;
+.developer-terminal-container .terminal-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 212, 170, 0.5);
+    border-radius: 3px;
 }
 
-.treasury-ai-log::-webkit-scrollbar-thumb:hover {
-    opacity: 0.5;
+.developer-terminal-container .terminal-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 212, 170, 0.7);
 }
 
-.treasury-log-entry {
-    margin-bottom: 12px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: rgba(0, 212, 170, 0.05);
-    border-left: 3px solid var(--primary-color);
-    animation: slideIn 0.3s ease;
+.developer-terminal-container .terminal-body {
+    background: rgba(0, 0, 0, 0.3);
 }
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.treasury-log-timestamp {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    margin-right: 8px;
-}
-
-.treasury-log-agent {
-    color: var(--primary-color);
-    font-weight: 600;
-    margin-right: 8px;
-}
-
-.treasury-log-message {
-    color: var(--text-primary);
-}
-
-.treasury-log-entry.log-scout { border-left-color: var(--primary-color); }
-.treasury-log-entry.log-auditor { border-left-color: var(--warning); }
-.treasury-log-entry.log-manager { border-left-color: #00aaff; }
-.treasury-log-entry.log-settlement { border-left-color: #ff44ff; }
-.treasury-log-entry.log-system { border-left-color: var(--positive); }
 
 @media (max-width: 768px) {
     .analysis-panel {

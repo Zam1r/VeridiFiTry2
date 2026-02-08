@@ -19,7 +19,9 @@ const state = {
         activeCompanies: 0,
         marketCap: 0
     },
-    plasmaTerminalInterval: null
+    plasmaTerminalInterval: null,
+    displayedMintIds: new Set(), // Track which mint events have been displayed
+    isInitialMintLoad: true // Track if this is the first load
 };
 
 // API Base URL - Now integrated with Flask server
@@ -723,11 +725,11 @@ function loadNews() {
 
 // Load and display carbon credit mint events
 async function loadMintEvents() {
-    const mintEventsList = document.getElementById('mint-events-list');
+    const mintTerminalContent = document.getElementById('mint-terminal-content');
     const totalInCirculation = document.getElementById('total-in-circulation');
     const totalMinted = document.getElementById('total-minted');
     
-    if (!mintEventsList) return;
+    if (!mintTerminalContent) return;
 
     try {
         const response = await fetch('/api/carbon-credits/mints');
@@ -749,56 +751,130 @@ async function loadMintEvents() {
             // Update total credits in market stats
             updateMarketStats();
             
-            // Render mint events
+            // Handle initial load or empty state
             if (mints.length === 0) {
-                mintEventsList.innerHTML = `
-                    <div class="mint-event-placeholder">
-                        <p>No mint events yet. Waiting for Plasma to mint carbon credits...</p>
-                    </div>
-                `;
-            } else {
-                mintEventsList.innerHTML = mints.map(mint => `
-                    <div class="mint-event">
-                        <div class="mint-event-header">
-                            <div class="mint-event-title">
-                                🪙 Carbon Credit Minted
-                            </div>
-                            <div class="mint-event-amount">+${mint.amount.toLocaleString()} CC</div>
+                if (state.isInitialMintLoad) {
+                    mintTerminalContent.innerHTML = `
+                        <div class="terminal-log terminal-log-system">
+                            <span class="log-timestamp">[--:--:--]</span>
+                            <span class="log-icon">ℹ️</span>
+                            <span class="log-message">No mint events yet. Waiting for Plasma to mint carbon credits...</span>
                         </div>
-                        <div class="mint-event-details">
-                            <div class="mint-event-detail">
-                                <span class="mint-event-detail-icon">⛓️</span>
-                                <span>Blockchain: ${mint.network || 'Plasma'}</span>
-                            </div>
-                            <div class="mint-event-detail">
-                                <span class="mint-event-detail-icon">📝</span>
-                                <span>TX: <a href="${mint.explorer_url || '#'}" target="_blank" class="mint-event-tx-hash">${mint.tx_hash ? (mint.tx_hash.substring(0, 10) + '...' + mint.tx_hash.substring(mint.tx_hash.length - 8)) : 'Pending'}</a></span>
-                            </div>
-                            <div class="mint-event-detail">
-                                <span class="mint-event-detail-icon">🕐</span>
-                                <span class="mint-event-timestamp">${formatMintTimestamp(mint.timestamp)}</span>
-                            </div>
-                            ${mint.reason ? `
-                            <div class="mint-event-detail">
-                                <span class="mint-event-detail-icon">💡</span>
-                                <span>${mint.reason}</span>
-                            </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                    state.isInitialMintLoad = false;
+                }
+                return;
+            }
+            
+            // Sort mints by timestamp (newest first) for display
+            const sortedMints = [...mints].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            
+            // On initial load, display all mints (up to 50)
+            if (state.isInitialMintLoad) {
+                const recentMints = sortedMints.slice(0, 50);
+                mintTerminalContent.innerHTML = recentMints.map(mint => {
+                    const mintId = mint.id || mint.tx_hash || `${mint.timestamp}_${mint.amount}`;
+                    state.displayedMintIds.add(mintId);
+                    return createMintLogEntry(mint);
+                }).join('');
+                
+                state.isInitialMintLoad = false;
+                // Auto-scroll to bottom
+                mintTerminalContent.scrollTop = mintTerminalContent.scrollHeight;
+                return;
+            }
+            
+            // For subsequent loads, only add new mints
+            const newMints = sortedMints.filter(mint => {
+                const mintId = mint.id || mint.tx_hash || `${mint.timestamp}_${mint.amount}`;
+                return !state.displayedMintIds.has(mintId);
+            });
+            
+            if (newMints.length > 0) {
+                // Remove placeholder message if it exists
+                const placeholder = mintTerminalContent.querySelector('.terminal-log-system');
+                if (placeholder && placeholder.textContent.includes('No mint events yet')) {
+                    placeholder.remove();
+                }
+                
+                // Add new mint log entries
+                newMints.forEach(mint => {
+                    const mintId = mint.id || mint.tx_hash || `${mint.timestamp}_${mint.amount}`;
+                    state.displayedMintIds.add(mintId);
+                    
+                    const logEntry = document.createElement('div');
+                    logEntry.className = 'terminal-log terminal-log-success';
+                    logEntry.innerHTML = createMintLogEntry(mint);
+                    mintTerminalContent.appendChild(logEntry);
+                });
+                
+                // Keep only the last 50 entries for performance
+                const allLogs = mintTerminalContent.querySelectorAll('.terminal-log');
+                if (allLogs.length > 50) {
+                    const logsToRemove = allLogs.length - 50;
+                    for (let i = 0; i < logsToRemove; i++) {
+                        allLogs[i].remove();
+                    }
+                }
+                
+                // Auto-scroll to bottom
+                mintTerminalContent.scrollTop = mintTerminalContent.scrollHeight;
             }
         } else {
             console.error('Failed to load mint events:', data.error);
+            // Only show error on initial load or if terminal is empty
+            if (state.isInitialMintLoad || mintTerminalContent.children.length === 0) {
+                mintTerminalContent.innerHTML = `
+                    <div class="terminal-log terminal-log-error">
+                        <span class="log-timestamp">[--:--:--]</span>
+                        <span class="log-icon">❌</span>
+                        <span class="log-message">Error loading mint events: ${data.error || 'Unknown error'}</span>
+                    </div>
+                `;
+                state.isInitialMintLoad = false;
+            }
         }
     } catch (error) {
         console.error('Error loading mint events:', error);
-        mintEventsList.innerHTML = `
-            <div class="mint-event-placeholder">
-                <p>Error loading mint events. Please try again later.</p>
-            </div>
-        `;
+        // Only show error on initial load or if terminal is empty
+        if (state.isInitialMintLoad || mintTerminalContent.children.length === 0) {
+            mintTerminalContent.innerHTML = `
+                <div class="terminal-log terminal-log-error">
+                    <span class="log-timestamp">[--:--:--]</span>
+                    <span class="log-icon">❌</span>
+                    <span class="log-message">Error loading mint events. Please try again later.</span>
+                </div>
+            `;
+            state.isInitialMintLoad = false;
+        }
     }
+}
+
+function createMintLogEntry(mint) {
+    const timestamp = formatMintTimestampForTerminal(mint.timestamp);
+    const txHash = mint.tx_hash ? (mint.tx_hash.substring(0, 10) + '...' + mint.tx_hash.substring(mint.tx_hash.length - 8)) : 'Pending';
+    const explorerUrl = mint.explorer_url || '#';
+    const network = mint.network || 'Plasma';
+    const reason = mint.reason || 'Carbon Credit Minted';
+    
+    return `
+        <span class="log-timestamp">[${timestamp}]</span>
+        <span class="log-message">
+            <strong>Carbon Credit Minted</strong> - <span style="color: #51cf66;">+${mint.amount.toLocaleString()} CC</span> | 
+            Blockchain: <span style="color: #74b9ff;">${network}</span> | 
+            TX: <a href="${explorerUrl}" target="_blank" style="color: #74b9ff; text-decoration: none;">${txHash}</a> | 
+            Reason: ${reason}
+        </span>
+    `;
+}
+
+function formatMintTimestampForTerminal(timestamp) {
+    if (!timestamp) return '--:--:--';
+    const date = new Date(timestamp * 1000);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
 }
 
 function formatMintTimestamp(timestamp) {
@@ -1805,10 +1881,13 @@ function initializeMenu() {
     const menuDropdown = document.getElementById('menu-dropdown');
     const profileBtn = document.getElementById('menu-profile');
     const settingsBtn = document.getElementById('menu-settings');
+    const futurePlansBtn = document.getElementById('menu-future-plans');
     const profileModal = document.getElementById('profile-modal');
     const settingsModal = document.getElementById('settings-modal');
+    const futurePlansModal = document.getElementById('future-plans-modal');
     const closeProfile = document.getElementById('close-profile');
     const closeSettings = document.getElementById('close-settings');
+    const closeFuturePlans = document.getElementById('close-future-plans');
     
     if (!menuToggle || !menuDropdown) return;
     
@@ -1852,6 +1931,18 @@ function initializeMenu() {
         });
     }
     
+    // Future Plans button
+    if (futurePlansBtn) {
+        futurePlansBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            menuToggle.classList.remove('active');
+            menuDropdown.classList.remove('active');
+            if (futurePlansModal) {
+                futurePlansModal.classList.add('active');
+            }
+        });
+    }
+    
     // Close modals
     if (closeProfile && profileModal) {
         closeProfile.addEventListener('click', () => {
@@ -1862,6 +1953,12 @@ function initializeMenu() {
     if (closeSettings && settingsModal) {
         closeSettings.addEventListener('click', () => {
             settingsModal.classList.remove('active');
+        });
+    }
+    
+    if (closeFuturePlans && futurePlansModal) {
+        closeFuturePlans.addEventListener('click', () => {
+            futurePlansModal.classList.remove('active');
         });
     }
     
@@ -1882,11 +1979,20 @@ function initializeMenu() {
         });
     }
     
+    if (futurePlansModal) {
+        futurePlansModal.addEventListener('click', (e) => {
+            if (e.target === futurePlansModal) {
+                futurePlansModal.classList.remove('active');
+            }
+        });
+    }
+    
     // Close modals with Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             if (profileModal) profileModal.classList.remove('active');
             if (settingsModal) settingsModal.classList.remove('active');
+            if (futurePlansModal) futurePlansModal.classList.remove('active');
             const adminModal = document.getElementById('admin-modal');
             if (adminModal) adminModal.classList.remove('active');
         }
@@ -2179,6 +2285,7 @@ let scanningCurrentScanResults = null;
 const scanningAnimationState = {
     isScanning: false,
     animationFrameId: null,
+    rotationAnimationId: null,
     cleanupFunctions: []
 };
 
@@ -2723,7 +2830,7 @@ function worldToScanningScreen(worldPosition, viewer) {
     return screenPosition ? { x: screenPosition.x, y: screenPosition.y } : null;
 }
 
-// Enhanced satellite animation
+// Enhanced satellite animation - orbiting satellites with animated lines
 function startScanningSatelliteAnimation(company) {
     if (!scanningViewer || !company) {
         console.error('Viewer or company not initialized', { viewer: !!scanningViewer, company: !!company });
@@ -2737,36 +2844,90 @@ function startScanningSatelliteAnimation(company) {
     scanningAnimationState.isScanning = true;
     
     const animationContainer = document.getElementById('satellite-animation');
-    const satelliteLeft = document.getElementById('satellite-left');
-    const satelliteRight = document.getElementById('satellite-right');
-    const groundSatellite = document.getElementById('ground-satellite');
-    const lineLeftGround = document.getElementById('line-left-ground');
-    const lineRightGround = document.getElementById('line-right-ground');
+    const svg = document.getElementById('satellite-lines');
     const loadingBar = document.getElementById('loading-bar');
     const scanButton = document.getElementById('scan-button');
     
     // Verify all elements exist
-    if (!animationContainer || !satelliteLeft || !satelliteRight || !groundSatellite || 
-        !lineLeftGround || !lineRightGround || !loadingBar) {
+    if (!animationContainer || !svg || !loadingBar) {
         console.error('Missing animation elements:', {
             container: !!animationContainer,
-            left: !!satelliteLeft,
-            right: !!satelliteRight,
-            ground: !!groundSatellite,
-            lineLeft: !!lineLeftGround,
-            lineRight: !!lineRightGround,
+            svg: !!svg,
             loadingBar: !!loadingBar
         });
         scanningAnimationState.isScanning = false;
         return;
     }
     
+    // Reset camera to default position (zoomed out view of entire globe)
+    if (scanningViewer && scanningViewer.camera) {
+        scanningViewer.camera.flyTo({
+            destination: Cesium.Cartesian3.fromDegrees(0, 0, 20000000),
+            orientation: {
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-90),
+                roll: 0.0
+            },
+            duration: 1.5,
+            complete: function() {
+                // Start slow rotation after camera reaches default position
+                startGlobeRotation();
+            }
+        });
+    }
+    
+    // Function to start slow globe rotation
+    function startGlobeRotation() {
+        if (!scanningViewer || !scanningAnimationState.isScanning) return;
+        
+        const rotationSpeed = 0.001; // Slow rotation speed (radians per frame)
+        let currentLongitude = 0;
+        const cameraHeight = 20000000; // Keep camera at fixed height
+        
+        function rotateGlobe() {
+            if (!scanningAnimationState.isScanning || !scanningViewer) {
+                return;
+            }
+            
+            currentLongitude += rotationSpeed;
+            // Keep longitude in valid range
+            if (currentLongitude >= Cesium.Math.TWO_PI) {
+                currentLongitude -= Cesium.Math.TWO_PI;
+            }
+            
+            // Rotate camera around the globe by updating position
+            // Camera looks down at the center from above
+            const longitude = Cesium.Math.toDegrees(currentLongitude);
+            const latitude = 0; // Keep at equator for full globe view
+            
+            // Update camera position and orientation smoothly
+            const cameraPosition = Cesium.Cartesian3.fromDegrees(longitude, latitude, cameraHeight);
+            const center = Cesium.Cartesian3.ZERO;
+            
+            scanningViewer.camera.position = cameraPosition;
+            scanningViewer.camera.direction = Cesium.Cartesian3.normalize(
+                Cesium.Cartesian3.subtract(center, cameraPosition, new Cesium.Cartesian3()),
+                new Cesium.Cartesian3()
+            );
+            scanningViewer.camera.up = Cesium.Cartesian3.UNIT_Z;
+            scanningViewer.camera.right = Cesium.Cartesian3.cross(
+                scanningViewer.camera.direction,
+                scanningViewer.camera.up,
+                new Cesium.Cartesian3()
+            );
+            
+            scanningAnimationState.rotationAnimationId = requestAnimationFrame(rotateGlobe);
+        }
+        
+        scanningAnimationState.rotationAnimationId = requestAnimationFrame(rotateGlobe);
+    }
+    
+    // Clear any existing satellites
+    const existingSatellites = animationContainer.querySelectorAll('.satellite');
+    existingSatellites.forEach(sat => sat.remove());
+    svg.innerHTML = ''; // Clear all lines
+    
     // Reset animation state
-    satelliteLeft.classList.remove('risen');
-    satelliteRight.classList.remove('risen');
-    groundSatellite.classList.remove('visible');
-    lineLeftGround.classList.remove('active');
-    lineRightGround.classList.remove('active');
     loadingBar.style.width = '0%';
     
     // Show animation container
@@ -2778,29 +2939,61 @@ function startScanningSatelliteAnimation(company) {
     // Show terminal
     showScanningTerminal();
     
-    // Position satellites relative to company location
+    // Get company location
     const companyLat = company.headquarters.latitude;
     const companyLon = company.headquarters.longitude;
+    const groundPos3D = latLonToScanningPosition(companyLat, companyLon, 6378137);
     
-    const leftSatLat = companyLat + 20;
-    const leftSatLon = companyLon - 30;
-    const rightSatLat = companyLat + 20;
-    const rightSatLon = companyLon + 30;
+    // Create multiple satellites in orbit around the world
+    const satelliteCount = 6;
+    const orbitRadius = 6378137 + 20000000; // Earth radius + 20,000 km
+    const satellites = [];
+    const lines = [];
     
-    // Set up SVG lines
-    const svg = document.getElementById('satellite-lines');
+    // Set up SVG
     svg.setAttribute('width', window.innerWidth);
     svg.setAttribute('height', window.innerHeight);
     
-    setTimeout(() => {
-        groundSatellite.classList.add('visible');
-    }, 800);
+    // Create satellites distributed around the globe
+    for (let i = 0; i < satelliteCount; i++) {
+        // Distribute satellites evenly around the globe
+        const angle = (i / satelliteCount) * Cesium.Math.TWO_PI;
+        const lat = Math.sin(angle) * 60; // Between -60 and 60 degrees
+        const lon = (angle / Cesium.Math.TWO_PI) * 360; // 0 to 360 degrees
+        
+        // Create satellite element
+        const satellite = document.createElement('div');
+        satellite.className = 'satellite';
+        satellite.id = `satellite-${i}`;
+        satellite.innerHTML = '<pre class="satellite-art">    /\\\n   /  \\\n  |    |\n  |____|\n   \\  /\n    \\/</pre>';
+        animationContainer.appendChild(satellite);
+        
+        // Create line element
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('class', 'signal-line');
+        line.setAttribute('id', `line-${i}`);
+        line.setAttribute('stroke', '#00d4aa');
+        line.setAttribute('stroke-width', '2');
+        line.setAttribute('stroke-dasharray', '5,5');
+        line.setAttribute('opacity', '0.6');
+        svg.appendChild(line);
+        
+        satellites.push({
+            element: satellite,
+            lat: lat,
+            lon: lon,
+            angle: angle,
+            orbitSpeed: 0.0003 + (i * 0.0001) // Different speeds for each satellite
+        });
+        
+        lines.push(line);
+    }
     
-    // Position update loop
-    let initialUpdateDone = false;
+    // Animation loop
     let lastFrameTime = performance.now();
     const targetFPS = 30;
     const frameInterval = 1000 / targetFPS;
+    const animationStartTime = Date.now();
     
     const updatePositions = (currentTime) => {
         if (currentTime - lastFrameTime < frameInterval) {
@@ -2813,110 +3006,58 @@ function startScanningSatelliteAnimation(company) {
             return;
         }
         
-        const groundPos3D = latLonToScanningPosition(companyLat, companyLon, 6378137 + 1000);
-        const leftSatPos3D = latLonToScanningPosition(leftSatLat, leftSatLon, 6378137 + 20000000);
-        const rightSatPos3D = latLonToScanningPosition(rightSatLat, rightSatLon, 6378137 + 20000000);
+        const elapsed = (Date.now() - animationStartTime) / 1000; // Time in seconds
         
-        const groundScreen = worldToScanningScreen(groundPos3D, scanningViewer);
-        const leftSatScreen = worldToScanningScreen(leftSatPos3D, scanningViewer);
-        const rightSatScreen = worldToScanningScreen(rightSatPos3D, scanningViewer);
-        
-        if (!groundScreen || !leftSatScreen || !rightSatScreen) {
-            if (scanningAnimationState.isScanning) {
-                scanningAnimationState.animationFrameId = requestAnimationFrame(updatePositions);
+        // Update each satellite's position (orbiting)
+        satellites.forEach((sat, index) => {
+            // Update orbital position
+            const currentAngle = sat.angle + (elapsed * sat.orbitSpeed);
+            const lat = Math.sin(currentAngle) * 60;
+            const lon = ((currentAngle % Cesium.Math.TWO_PI) / Cesium.Math.TWO_PI) * 360;
+            
+            // Convert to 3D position
+            const satPos3D = latLonToScanningPosition(lat, lon, orbitRadius);
+            const satScreen = worldToScanningScreen(satPos3D, scanningViewer);
+            
+            if (satScreen) {
+                // Position satellite
+                sat.element.style.left = `${satScreen.x}px`;
+                sat.element.style.top = `${satScreen.y}px`;
+                sat.element.style.display = 'block';
+                
+                // Get ground position on screen
+                const groundScreen = worldToScanningScreen(groundPos3D, scanningViewer);
+                
+                if (groundScreen) {
+                    // Animate line back and forth between satellite and ground
+                    const lineProgress = ((elapsed * 0.5 + index * 0.3) % 2) / 2; // 2 second cycle, offset per satellite
+                    const easedProgress = lineProgress < 0.5 
+                        ? 2 * lineProgress * lineProgress 
+                        : 1 - Math.pow(-2 * lineProgress + 2, 2) / 2;
+                    
+                    // Calculate animated point along the line
+                    const satX = satScreen.x;
+                    const satY = satScreen.y;
+                    const groundX = groundScreen.x;
+                    const groundY = groundScreen.y;
+                    
+                    const animatedX = satX + (groundX - satX) * easedProgress;
+                    const animatedY = satY + (groundY - satY) * easedProgress;
+                    
+                    // Draw line from satellite to animated point
+                    lines[index].setAttribute('x1', satX);
+                    lines[index].setAttribute('y1', satY);
+                    lines[index].setAttribute('x2', animatedX);
+                    lines[index].setAttribute('y2', animatedY);
+                    lines[index].style.display = 'block';
+                } else {
+                    lines[index].style.display = 'none';
+                }
+            } else {
+                sat.element.style.display = 'none';
+                lines[index].style.display = 'none';
             }
-            return;
-        }
-        
-        if (!initialUpdateDone) {
-            const startY = window.innerHeight + 100;
-            satelliteLeft.style.top = `${startY}px`;
-            satelliteRight.style.top = `${startY}px`;
-            initialUpdateDone = true;
-            const riseStartTime = Date.now();
-            const riseDuration = 1500;
-            animationContainer._riseStartTime = riseStartTime;
-            animationContainer._riseDuration = riseDuration;
-            animationContainer._riseStartY = startY;
-        }
-        
-        const riseStartTime = animationContainer._riseStartTime;
-        const riseDuration = animationContainer._riseDuration;
-        const riseStartY = animationContainer._riseStartY;
-        const isRising = riseStartTime && (Date.now() - riseStartTime < riseDuration);
-        
-        if (isRising) {
-            const elapsed = Date.now() - riseStartTime;
-            const progress = Math.min(elapsed / riseDuration, 1);
-            const eased = progress < 0.5
-                ? 2 * progress * progress
-                : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-            
-            const currentLeftY = riseStartY + (leftSatScreen.y - riseStartY) * eased;
-            const currentRightY = riseStartY + (rightSatScreen.y - riseStartY) * eased;
-            
-            satelliteLeft.style.left = `${leftSatScreen.x}px`;
-            satelliteLeft.style.top = `${currentLeftY}px`;
-            satelliteRight.style.left = `${rightSatScreen.x}px`;
-            satelliteRight.style.top = `${currentRightY}px`;
-            
-            if (progress >= 1) {
-                satelliteLeft.classList.add('risen');
-                satelliteRight.classList.add('risen');
-                delete animationContainer._riseStartTime;
-                delete animationContainer._riseDuration;
-                delete animationContainer._riseStartY;
-            }
-        }
-        
-        if (satelliteLeft.classList.contains('risen')) {
-            satelliteLeft.style.left = `${leftSatScreen.x}px`;
-            satelliteLeft.style.top = `${leftSatScreen.y}px`;
-        }
-        
-        if (satelliteRight.classList.contains('risen')) {
-            satelliteRight.style.left = `${rightSatScreen.x}px`;
-            satelliteRight.style.top = `${rightSatScreen.y}px`;
-        }
-        
-        if (groundSatellite.classList.contains('visible')) {
-            groundSatellite.style.left = `${groundScreen.x}px`;
-            groundSatellite.style.top = `${groundScreen.y}px`;
-        }
-        
-        const leftRect = satelliteLeft.getBoundingClientRect();
-        const rightRect = satelliteRight.getBoundingClientRect();
-        const groundRect = groundSatellite.getBoundingClientRect();
-        
-        const leftX = leftRect.left + leftRect.width / 2;
-        const leftY = leftRect.top + leftRect.height / 2;
-        const rightX = rightRect.left + rightRect.width / 2;
-        const rightY = rightRect.top + rightRect.height / 2;
-        const groundX = groundRect.left + groundRect.width / 2;
-        const groundY = groundRect.top + groundRect.height / 2;
-        
-        const progress = (Date.now() % 2000) / 2000;
-        const easedProgress = progress < 0.5 
-            ? 2 * progress * progress 
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-        
-        const leftToGroundX = leftX + (groundX - leftX) * easedProgress;
-        const leftToGroundY = leftY + (groundY - leftY) * easedProgress;
-        lineLeftGround.setAttribute('x1', leftX);
-        lineLeftGround.setAttribute('y1', leftY);
-        lineLeftGround.setAttribute('x2', leftToGroundX);
-        lineLeftGround.setAttribute('y2', leftToGroundY);
-        
-        const rightProgress = ((Date.now() + 1000) % 2000) / 2000;
-        const rightEasedProgress = rightProgress < 0.5 
-            ? 2 * rightProgress * rightProgress 
-            : 1 - Math.pow(-2 * rightProgress + 2, 2) / 2;
-        const rightToGroundX = rightX + (groundX - rightX) * rightEasedProgress;
-        const rightToGroundY = rightY + (groundY - rightY) * rightEasedProgress;
-        lineRightGround.setAttribute('x1', rightX);
-        lineRightGround.setAttribute('y1', rightY);
-        lineRightGround.setAttribute('x2', rightToGroundX);
-        lineRightGround.setAttribute('y2', rightToGroundY);
+        });
         
         if (scanningAnimationState.isScanning) {
             scanningAnimationState.animationFrameId = requestAnimationFrame(updatePositions);
@@ -2926,11 +3067,6 @@ function startScanningSatelliteAnimation(company) {
     scanningAnimationState.animationFrameId = requestAnimationFrame(updatePositions);
     
     setTimeout(() => {
-        lineLeftGround.classList.add('active');
-        lineRightGround.classList.add('active');
-    }, 1600);
-    
-    setTimeout(() => {
         loadingBar.style.width = '100%';
     }, 100);
     
@@ -2938,47 +3074,54 @@ function startScanningSatelliteAnimation(company) {
     performScanningFlareScan(company, loadingBar).then(results => {
         scanningCurrentScanResults = results;
         
-        lineLeftGround.classList.remove('active');
-        lineRightGround.classList.remove('active');
-        
-        groundSatellite.classList.remove('visible');
-        
         setTimeout(() => {
-            satelliteLeft.classList.remove('risen');
-            satelliteRight.classList.remove('risen');
+            // Clean up satellites and lines
+            satellites.forEach(sat => sat.element.remove());
+            lines.forEach(line => line.remove());
             
-            setTimeout(() => {
-                animationContainer.classList.add('hidden');
-                loadingBar.style.width = '0%';
-                scanningAnimationState.isScanning = false;
-                scanButton.disabled = false;
-                
-                if (scanningAnimationState.animationFrameId) {
-                    cancelAnimationFrame(scanningAnimationState.animationFrameId);
-                    scanningAnimationState.animationFrameId = null;
-                }
-                
-                hideScanningTerminal();
-                
-                showScanningAnalysisPanel(results);
-            }, 1500);
-        }, 500);
+            animationContainer.classList.add('hidden');
+            loadingBar.style.width = '0%';
+            scanningAnimationState.isScanning = false;
+            scanButton.disabled = false;
+            
+            if (scanningAnimationState.animationFrameId) {
+                cancelAnimationFrame(scanningAnimationState.animationFrameId);
+                scanningAnimationState.animationFrameId = null;
+            }
+            
+            // Stop globe rotation
+            if (scanningAnimationState.rotationAnimationId) {
+                cancelAnimationFrame(scanningAnimationState.rotationAnimationId);
+                scanningAnimationState.rotationAnimationId = null;
+            }
+            
+            hideScanningTerminal();
+            
+            showScanningAnalysisPanel(results);
+        }, 1500);
     }).catch(error => {
         console.error('Scan failed:', error);
         scanningAnimationState.isScanning = false;
         scanButton.disabled = false;
+        
+        // Clean up
+        satellites.forEach(sat => sat.element.remove());
+        lines.forEach(line => line.remove());
+        
         if (scanningAnimationState.animationFrameId) {
             cancelAnimationFrame(scanningAnimationState.animationFrameId);
             scanningAnimationState.animationFrameId = null;
         }
+        
+        // Stop globe rotation
+        if (scanningAnimationState.rotationAnimationId) {
+            cancelAnimationFrame(scanningAnimationState.rotationAnimationId);
+            scanningAnimationState.rotationAnimationId = null;
+        }
+        
         animationContainer.classList.add('hidden');
         loadingBar.style.width = '0%';
-        
         hideScanningTerminal();
-        
-        const errorMessage = document.getElementById('error-message');
-        errorMessage.textContent = 'Scan failed. Please try again.';
-        errorMessage.classList.remove('hidden');
     });
 }
 
@@ -3902,14 +4045,39 @@ function treasuryAddLogEntry(agent, message, timestamp = null) {
         'settlement': 'Settlement',
         'system': 'System'
     };
-    const agentClass = `log-${agent}`;
+    
+    // Determine log type based on message content and agent
+    let logType = 'info';
+    const msgLower = message.toLowerCase();
+    
+    if (msgLower.includes('error') || msgLower.includes('failed') || msgLower.includes('❌')) {
+        logType = 'error';
+    } else if (msgLower.includes('success') || msgLower.includes('✅') || msgLower.includes('complete')) {
+        logType = 'success';
+    } else if (msgLower.includes('warning') || msgLower.includes('⚠️') || msgLower.includes('wait') || msgLower.includes('decision')) {
+        logType = 'warning';
+    } else if (msgLower.includes('api') || msgLower.includes('fetch') || msgLower.includes('request') || msgLower.includes('get ') || msgLower.includes('post ')) {
+        logType = 'api';
+    } else if (agent === 'system') {
+        logType = 'system';
+    }
+    
+    // Map agent to icon (similar to Agent Terminal)
+    const typeIcon = {
+        'system': '⚡',
+        'info': 'ℹ️',
+        'success': '✅',
+        'warning': '⚠️',
+        'error': '❌',
+        'api': '📡'
+    }[logType] || '•';
     
     const entry = document.createElement('div');
-    entry.className = `treasury-log-entry ${agentClass}`;
+    entry.className = `terminal-log terminal-log-${logType}`;
     entry.innerHTML = `
-        <span class="treasury-log-timestamp">[${logTimestamp}]</span>
-        <span class="treasury-log-agent">[${agentNames[agent] || agent}]</span>
-        <span class="treasury-log-message">${message}</span>
+        <span class="log-timestamp">[${logTimestamp}]</span>
+        <span class="log-icon">${typeIcon}</span>
+        <span class="log-message">[${agentNames[agent] || agent}] ${message}</span>
     `;
     
     log.appendChild(entry);

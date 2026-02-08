@@ -211,7 +211,7 @@ def auditor_agent(state: TreasuryState) -> TreasuryState:
         fdc_verification = contract_interface.check_fdc_verification()
         
         if not fdc_verification:
-            log_agent("Auditor", "❌ FDC verification check failed", state)
+            log_agent("Auditor", "FDC verification check failed", state)
             return {
                 **state,
                 "fdc_proof_valid": False,
@@ -220,21 +220,21 @@ def auditor_agent(state: TreasuryState) -> TreasuryState:
         
         voting_round_id = fdc_verification.get("voting_round_id")
         if voting_round_id:
-            log_agent("Auditor", f"📋 Voting Round ID: {voting_round_id}", state)
+            log_agent("Auditor", f"Voting Round ID: {voting_round_id}", state)
         
         if fdc_verification.get("verified"):
             intensity = fdc_verification.get("intensity")
             is_low_carbon = fdc_verification.get("is_low_carbon", False)
             
-            log_agent("Auditor", f"✅ FDC proof verified! Carbon intensity: {intensity} gCO2/kWh", state)
+            log_agent("Auditor", f"FDC proof verified! Carbon intensity: {intensity} gCO2/kWh", state)
             
             # fdc_proof_valid is True only if verified AND low carbon (< 50)
             fdc_proof_valid = is_low_carbon and intensity < 50
             
             if fdc_proof_valid:
-                log_agent("Auditor", "🟢 FDC proof valid: Low carbon confirmed (< 50 gCO2/kWh)", state)
+                log_agent("Auditor", "FDC proof valid: Low carbon confirmed (< 50 gCO2/kWh)", state)
             else:
-                log_agent("Auditor", f"⚠️ FDC verified but carbon not low ({intensity} >= 50)", state)
+                log_agent("Auditor", f"FDC verified but carbon not low ({intensity} >= 50)", state)
             
             return {
                 **state,
@@ -247,7 +247,7 @@ def auditor_agent(state: TreasuryState) -> TreasuryState:
                 }
             }
         else:
-            log_agent("Auditor", "⏳ FDC proof not yet verified. Waiting for consensus...", state)
+            log_agent("Auditor", "FDC proof not yet verified. Waiting for consensus...", state)
             return {
                 **state,
                 "fdc_proof_valid": False,
@@ -290,9 +290,9 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
             
             # Log Voting Round ID for auditability
             if voting_round_id:
-                log_agent("Auditor", f"📋 Voting Round ID: {voting_round_id}", state)
+                log_agent("Auditor", f"Voting Round ID: {voting_round_id}", state)
             else:
-                log_agent("Auditor", "⚠️ No Voting Round ID found - attestation may not be processed yet", state)
+                log_agent("Auditor", "No Voting Round ID found - attestation may not be processed yet", state)
             
             if fdc_verification.get("verified"):
                 # FDC proof exists and was verified by Flare nodes
@@ -301,31 +301,31 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
                 intensity = fdc_verification.get("intensity")
                 data_source = "FDC Verified (Flare Consensus)"
                 
-                log_agent("Auditor", f"✅ FDC attestation verified! Carbon intensity: {intensity} gCO2/kWh", state)
-                log_agent("Auditor", f"📋 Voting Round ID: {voting_round_id}", state)
+                log_agent("Auditor", f"FDC attestation verified! Carbon intensity: {intensity} gCO2/kWh", state)
+                log_agent("Auditor", f"Voting Round ID: {voting_round_id}", state)
                 
                 # Check if it's low carbon (Green) - threshold is 50
                 if fdc_verification.get("is_low_carbon", False) and intensity < 50:
                     verification_status = "STATE_GREEN_VERIFIED"
-                    log_agent("Auditor", "🟢 STATE_GREEN_VERIFIED: Low carbon (<50 gCO2/kWh) confirmed by FDC consensus!", state)
+                    log_agent("Auditor", "STATE_GREEN_VERIFIED: Low carbon (<50 gCO2/kWh) confirmed by FDC consensus!", state)
                 else:
                     verification_status = "VERIFIED"
-                    log_agent("Auditor", f"⚠️ FDC verified but carbon is not low ({intensity} gCO2/kWh >= 50)", state)
+                    log_agent("Auditor", f"FDC verified but carbon is not low ({intensity} gCO2/kWh >= 50)", state)
             else:
                 # No verified proof yet or invalid
-                log_agent("Auditor", "⏳ No FDC-verified attestation found. Waiting for Flare nodes to reach consensus...", state)
+                log_agent("Auditor", "No FDC-verified attestation found. Waiting for Flare nodes to reach consensus...", state)
                 log_agent("Auditor", "The AI doesn't trust raw API data - it requires FDC attestation.", state)
                 if voting_round_id:
-                    log_agent("Auditor", f"📋 Voting Round ID: {voting_round_id} (but no valid carbon intensity data)", state)
+                    log_agent("Auditor", f"Voting Round ID: {voting_round_id} (but no valid carbon intensity data)", state)
         else:
             # Error or no verification data
-            log_agent("Auditor", "❌ FDC verification check failed or returned no data", state)
+            log_agent("Auditor", "FDC verification check failed or returned no data", state)
             attestation_valid = False
         
         # If attestation is missing or invalid, route to ERROR_HALT
         if not attestation_valid or not is_fdc_verified:
             error_msg = f"FDC attestation missing or invalid. Voting Round ID: {voting_round_id or 'N/A'}"
-            log_agent("Auditor", f"🚨 ERROR: {error_msg}", state)
+            log_agent("Auditor", f"ERROR: {error_msg}", state)
             log_agent("Auditor", "Routing to ERROR_HALT node - cannot proceed without verified FDC attestation", state)
             
             return {
@@ -334,7 +334,7 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
                 "carbon_audit": {
                     "intensity": None,
                     "status": "Error",
-                    "status_emoji": "🚨",
+                    "status_emoji": "",
                     "region": "Oxford",
                     "data_source": "FDC Verification Failed",
                     "is_fdc_verified": False,
@@ -349,16 +349,16 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
         # Determine energy status based on intensity
         if intensity is None:
             status = "Unknown"
-            status_emoji = "⚪"
+            status_emoji = ""
         elif intensity < GREEN_THRESHOLD:
             status = "Green"
-            status_emoji = "🟢"
+            status_emoji = ""
         elif intensity < AMBER_THRESHOLD:
             status = "Amber"
-            status_emoji = "🟡"
+            status_emoji = ""
         else:
             status = "Red"
-            status_emoji = "🔴"
+            status_emoji = ""
         
         # Create Carbon Audit
         carbon_audit = {
@@ -379,9 +379,9 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
             "attestation_valid": attestation_valid
         }
         
-        log_agent("Auditor", f"Carbon Intensity: {intensity} gCO2/kWh - Status: {status_emoji} {status}", state)
+        log_agent("Auditor", f"Carbon Intensity: {intensity} gCO2/kWh - Status: {status}", state)
         log_agent("Auditor", f"Verification Status: {verification_status}", state)
-        log_agent("Auditor", f"📋 Voting Round ID: {voting_round_id} (logged for auditability)", state)
+        log_agent("Auditor", f"Voting Round ID: {voting_round_id} (logged for auditability)", state)
         log_agent("Auditor", "Carbon Audit generated. Sending to Manager...", state)
         
         return {
@@ -403,7 +403,7 @@ def environmental_auditor_agent(state: TreasuryState) -> TreasuryState:
             "carbon_audit": {
                 "intensity": None,
                 "status": "Error",
-                "status_emoji": "🚨",
+                    "status_emoji": "",
                 "region": "Oxford",
                 "data_source": "Exception in FDC Verification",
                 "is_fdc_verified": False,
@@ -426,7 +426,7 @@ def manager_agent(state: TreasuryState) -> TreasuryState:
     fdc_proof_valid = state.get("fdc_proof_valid", False)
     
     if ftso_price is None:
-        log_agent("Manager", "⚠️ No price data available. Cannot make decision.", state)
+        log_agent("Manager", "No price data available. Cannot make decision.", state)
         return {
             **state,
             "treasury_decision": "WAIT",
@@ -434,7 +434,7 @@ def manager_agent(state: TreasuryState) -> TreasuryState:
         }
     
     if fdc_proof_valid is None:
-        log_agent("Manager", "⚠️ FDC proof status unknown. Cannot make decision.", state)
+        log_agent("Manager", "FDC proof status unknown. Cannot make decision.", state)
         return {
             **state,
             "treasury_decision": "WAIT",
@@ -449,7 +449,7 @@ def manager_agent(state: TreasuryState) -> TreasuryState:
     log_agent("Manager", f"FDC Proof Valid: {fdc_proof_valid} (carbon < {GREEN_THRESHOLD} gCO2/kWh)", state)
     
     if price_below_target and carbon_below_threshold:
-        log_agent("Manager", "✅ Conditions met: Price < target AND Carbon < threshold", state)
+        log_agent("Manager", "Conditions met: Price < target AND Carbon < threshold", state)
         log_agent("Manager", "Decision: Proceed to Settlement", state)
         return {
             **state,
@@ -464,7 +464,7 @@ def manager_agent(state: TreasuryState) -> TreasuryState:
         else:
             reason = "Conditions not met"
         
-        log_agent("Manager", f"⏸️ Conditions not met: {reason}", state)
+        log_agent("Manager", f"Conditions not met: {reason}", state)
         log_agent("Manager", "Decision: Wait", state)
         return {
             **state,
@@ -526,7 +526,7 @@ def treasury_manager_agent(state: TreasuryState) -> TreasuryState:
         decision = "WAIT"
         if not is_fdc_verified:
             reason = "FDC proof not verified. Waiting for Flare nodes to reach consensus. AI doesn't trust unverified data."
-            log_agent("Manager", "⚠️ Carbon data is not FDC-verified. AI requires consensus before trading.", state)
+            log_agent("Manager", "Carbon data is not FDC-verified. AI requires consensus before trading.", state)
         elif fdc_status == "VERIFIED":
             reason = f"FDC verified but carbon is not low ({intensity} gCO2/kWh). Waiting for Green energy."
         else:
@@ -553,9 +553,9 @@ def treasury_manager_agent(state: TreasuryState) -> TreasuryState:
     # Logic Gate 2: If Energy is 'Green' AND FDC-verified (STATE_GREEN_VERIFIED) AND XRP Price < $1.10, EXECUTE_BUY
     if is_green and fdc_status == "STATE_GREEN_VERIFIED" and xrp_price < XRP_TARGET_PRICE:
         decision = "EXECUTE_BUY"
-        reason = f"✅ STATE_GREEN_VERIFIED: FDC consensus confirmed low carbon ({intensity} gCO2/kWh < {GREEN_THRESHOLD}) AND XRP Price (${xrp_price:.4f}) is below target (${XRP_TARGET_PRICE}). Executing buy signal."
+        reason = f"STATE_GREEN_VERIFIED: FDC consensus confirmed low carbon ({intensity} gCO2/kWh < {GREEN_THRESHOLD}) AND XRP Price (${xrp_price:.4f}) is below target (${XRP_TARGET_PRICE}). Executing buy signal."
         log_agent("Manager", f"DECISION: {decision} - {reason}", state)
-        log_agent("Manager", "✅ All conditions met: FDC-verified Green energy + favorable XRP price", state)
+        log_agent("Manager", "All conditions met: FDC-verified Green energy + favorable XRP price", state)
         return {
             **state,
             "treasury_decision": decision,
@@ -626,8 +626,8 @@ def settlement_agent(state: TreasuryState) -> TreasuryState:
                     "timestamp": int(time.time())
                 }
                 
-                log_agent("Settlement", f"✅ Plasma payout executed! TX: {tx_hash}", state)
-                log_agent("Settlement", "💚 Recipient received USDT with $0 gas fees!", state)
+                log_agent("Settlement", f"Plasma payout executed! TX: {tx_hash}", state)
+                log_agent("Settlement", "Recipient received USDT with $0 gas fees!", state)
                 
                 return {
                     **state,
@@ -636,7 +636,7 @@ def settlement_agent(state: TreasuryState) -> TreasuryState:
                 }
             else:
                 error_msg = result.stderr or result.stdout
-                log_agent("Settlement", f"❌ Plasma payout failed: {error_msg}", state)
+                log_agent("Settlement", f"Plasma payout failed: {error_msg}", state)
                 return {
                     **state,
                     "payout_status": {
@@ -647,7 +647,7 @@ def settlement_agent(state: TreasuryState) -> TreasuryState:
                 }
         except subprocess.TimeoutExpired:
             error_msg = "Plasma payout timed out"
-            log_agent("Settlement", f"❌ {error_msg}", state)
+            log_agent("Settlement", f"{error_msg}", state)
             return {
                 **state,
                 "payout_status": {
@@ -658,7 +658,7 @@ def settlement_agent(state: TreasuryState) -> TreasuryState:
             }
         except Exception as e:
             error_msg = f"Exception in Plasma payout: {str(e)}"
-            log_agent("Settlement", f"❌ {error_msg}", state)
+            log_agent("Settlement", f"{error_msg}", state)
             return {
                 **state,
                 "payout_status": {
@@ -709,14 +709,14 @@ def settlement_agent_old(state: TreasuryState) -> TreasuryState:
         try:
             from plasma_payout import send_plasma_reward, check_plasma_setup
         except ImportError:
-            log_agent("Settlement", "⚠️ Plasma payout module not available. Using mock payment.", state)
+            log_agent("Settlement", "Plasma payout module not available. Using mock payment.", state)
             # Fallback to mock payment
             return _mock_plasma_payment(state)
         
         # Check Plasma setup
         setup_status = check_plasma_setup()
         if not setup_status["configured"]:
-            log_agent("Settlement", f"⚠️ Plasma not configured: {setup_status['issues']}", state)
+            log_agent("Settlement", f"Plasma not configured: {setup_status['issues']}", state)
             log_agent("Settlement", "Using mock payment. Configure Plasma to enable real payouts.", state)
             return _mock_plasma_payment(state)
         
@@ -749,10 +749,10 @@ def settlement_agent_old(state: TreasuryState) -> TreasuryState:
                 "network": "Plasma Testnet"
             }
             
-            log_agent("Settlement", f"✅ Plasma Payment executed successfully!", state)
+            log_agent("Settlement", f"Plasma Payment executed successfully!", state)
             log_agent("Settlement", f"TX Hash: {result.get('transaction_hash', 'Pending')}", state)
             log_agent("Settlement", f"Amount: {amount_usdt} USDT (Green Reward)", state)
-            log_agent("Settlement", "💚 Recipient received USDT with $0 gas fees!", state)
+            log_agent("Settlement", "Recipient received USDT with $0 gas fees!", state)
             
             return {
                 **state,
@@ -760,7 +760,7 @@ def settlement_agent_old(state: TreasuryState) -> TreasuryState:
             }
         else:
             error_msg = result.get("error", "Unknown error")
-            log_agent("Settlement", f"❌ Plasma payment failed: {error_msg}", state)
+            log_agent("Settlement", f"Plasma payment failed: {error_msg}", state)
             log_agent("Settlement", "Falling back to mock payment for demonstration...", state)
             return _mock_plasma_payment(state, error_msg)
         
@@ -801,7 +801,7 @@ def _mock_plasma_payment(state: TreasuryState, error_msg: str = None) -> Treasur
         "note": "Mock payment - Configure Plasma for real payouts"
     }
     
-    log_agent("Settlement", f"✅ Mock Plasma Payment executed (configure Plasma for real payouts)", state)
+    log_agent("Settlement", f"Mock Plasma Payment executed (configure Plasma for real payouts)", state)
     
     return {
         **state,
@@ -815,7 +815,7 @@ def error_halt_agent(state: TreasuryState) -> TreasuryState:
     Handles errors when FDC attestation is missing or invalid
     Stops all trading activity for safety
     """
-    log_agent("ERROR_HALT", "🚨 ERROR_HALT: FDC attestation verification failed", state)
+    log_agent("ERROR_HALT", "ERROR_HALT: FDC attestation verification failed", state)
     log_agent("ERROR_HALT", "All trading activity has been halted for safety", state)
     
     errors = state.get("errors", [])
@@ -977,7 +977,7 @@ def run_veridifi_swarm():
     Run the VeridiFi Swarm with streaming output for live monitoring
     """
     print("=" * 80)
-    print("🌱 VERIDIFI SWARM - Multi-Agent Decision System")
+    print("VERIDIFI SWARM - Multi-Agent Decision System")
     print("=" * 80)
     print("\nSwarm Flow:")
     print("  START -> Scout (Price) -> Auditor (Carbon) -> Manager (Decision) -> Settlement (Plasma)")
@@ -1010,14 +1010,14 @@ def run_veridifi_swarm():
     try:
         from dashboard_server import agents_running
         if not agents_running:
-            print("⏸️ Agents stopped by dashboard. Skipping execution.")
+            print("Agents stopped by dashboard. Skipping execution.")
             return None
     except (ImportError, AttributeError):
         # If dashboard_server not available, continue normally
         pass
     
     # Run with streaming for live monitoring
-    print("🚀 Starting VeridiFi Swarm Execution...\n")
+    print("Starting VeridiFi Swarm Execution...\n")
     print("-" * 80)
     
     final_state = None
@@ -1026,44 +1026,44 @@ def run_veridifi_swarm():
         try:
             from dashboard_server import agents_running
             if not agents_running:
-                print("\n⏸️ Agents stopped by dashboard. Halting execution.")
+                print("\nAgents stopped by dashboard. Halting execution.")
                 break
         except (ImportError, AttributeError):
             # If dashboard_server not available, continue normally
             pass
         # Print each node's output
         for node_name, node_state in state.items():
-            print(f"\n📊 [{node_name.upper()}] Node Output:")
+            print(f"\n[{node_name.upper()}] Node Output:")
             print("-" * 80)
             
             # Display key state updates
             if "ftso_price" in node_state and node_state["ftso_price"] is not None:
-                print(f"  💰 FTSO Price: ${node_state['ftso_price']:.4f}")
+                print(f"  FTSO Price: ${node_state['ftso_price']:.4f}")
             
             if "fdc_proof_valid" in node_state and node_state["fdc_proof_valid"] is not None:
-                status = "✅ VALID" if node_state["fdc_proof_valid"] else "❌ INVALID"
-                print(f"  🌍 FDC Proof Valid: {status}")
+                status = "VALID" if node_state["fdc_proof_valid"] else "INVALID"
+                print(f"  FDC Proof Valid: {status}")
             
             if "treasury_decision" in node_state and node_state["treasury_decision"]:
-                print(f"  🎯 Decision: {node_state['treasury_decision']}")
+                print(f"  Decision: {node_state['treasury_decision']}")
                 if node_state.get("decision_reason"):
-                    print(f"  📝 Reason: {node_state['decision_reason']}")
+                    print(f"  Reason: {node_state['decision_reason']}")
             
             if "payout_status" in node_state and node_state["payout_status"]:
                 payout = node_state["payout_status"]
                 if payout.get("executed"):
-                    print(f"  💚 Payout Status: ✅ EXECUTED")
-                    print(f"  📦 Amount: {payout.get('amount_usdt', 0)} USDT")
+                    print(f"  Payout Status: EXECUTED")
+                    print(f"  Amount: {payout.get('amount_usdt', 0)} USDT")
                     if payout.get("transaction_hash"):
-                        print(f"  🔗 TX Hash: {payout['transaction_hash']}")
+                        print(f"  TX Hash: {payout['transaction_hash']}")
                 else:
-                    print(f"  ❌ Payout Status: FAILED")
+                    print(f"  Payout Status: FAILED")
                     if payout.get("error"):
-                        print(f"  ⚠️  Error: {payout['error']}")
+                        print(f"  Error: {payout['error']}")
             
             # Show errors if any
             if node_state.get("errors"):
-                print(f"  ⚠️  Errors: {len(node_state['errors'])}")
+                print(f"  Errors: {len(node_state['errors'])}")
                 for error in node_state["errors"][-3:]:  # Show last 3 errors
                     print(f"     - {error.get('agent', 'Unknown')}: {error.get('error', 'Unknown')}")
             
@@ -1073,7 +1073,7 @@ def run_veridifi_swarm():
         final_state = state
     
     print("\n" + "=" * 80)
-    print("✅ VeridiFi Swarm Execution Complete")
+    print("VeridiFi Swarm Execution Complete")
     print("=" * 80)
     
     return final_state
@@ -1084,7 +1084,7 @@ def run_green_treasury():
     Run the Green Treasury multi-agent swarm (legacy)
     """
     print("=" * 80)
-    print("🌱 GREEN TREASURY - Autonomous Multi-Agent Orchestration System")
+    print("GREEN TREASURY - Autonomous Multi-Agent Orchestration System")
     print("=" * 80)
     print("\nSwarm Roles & Nodes:")
     print("  1. Oracle Scout (FTSO Node) - Polls BTC/USD and XRP/USD prices")
@@ -1116,40 +1116,40 @@ def run_green_treasury():
     
     # Print final summary
     print("\n" + "=" * 80)
-    print("📊 FINAL TREASURY REPORT")
+    print("FINAL TREASURY REPORT")
     print("=" * 80)
     
     if result.get("market_report"):
         mr = result["market_report"]
         if mr.get("status") == "VALID":
-            print(f"\n📈 Market Report:")
+            print(f"\nMarket Report:")
             print(f"   BTC/USD: ${mr['btc_usd']:,.2f}")
             print(f"   XRP/USD: ${mr['xrp_usd']:,.4f}")
             print(f"   Data Freshness: BTC {mr['btc_freshness_seconds']}s, XRP {mr['xrp_freshness_seconds']}s")
         else:
-            print(f"\n❌ Market Report Error: {mr.get('error', 'Unknown')}")
+            print(f"\nMarket Report Error: {mr.get('error', 'Unknown')}")
     
     if result.get("carbon_audit"):
         ca = result["carbon_audit"]
-        print(f"\n🌍 Carbon Audit:")
+        print(f"\nCarbon Audit:")
         print(f"   Intensity: {ca['intensity']} gCO2/kWh")
         print(f"   Status: {ca['status_emoji']} {ca['status']}")
         print(f"   Region: {ca['region']}")
         print(f"   Source: {ca['data_source']}")
     
     if result.get("treasury_decision"):
-        print(f"\n💼 Treasury Decision: {result['treasury_decision']}")
+        print(f"\nTreasury Decision: {result['treasury_decision']}")
         print(f"   Reason: {result['decision_reason']}")
     
     if result.get("settlement_status") and result["settlement_status"].get("executed"):
         ss = result["settlement_status"]
-        print(f"\n💸 Settlement Status: {ss['status']}")
+        print(f"\nSettlement Status: {ss['status']}")
         print(f"   Amount: {ss['amount_usdt']} USDT")
         print(f"   Recipient: {ss['recipient']}")
         print(f"   TX Hash: {ss['transaction_hash']}")
     
     if result.get("errors"):
-        print(f"\n⚠️  Errors: {len(result['errors'])}")
+        print(f"\nErrors: {len(result['errors'])}")
         for error in result["errors"]:
             print(f"   [{error['agent']}]: {error['error']}")
     
