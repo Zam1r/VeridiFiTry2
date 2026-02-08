@@ -89,3 +89,4 @@ Returns the most recent carbon intensity value.
 ## FDC Hub Address
 
 The contract uses the FDC Hub at: `0x3676742D4508492C026E77A3841C526019A8f1F0`
+
