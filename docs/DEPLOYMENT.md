@@ -14,3 +14,4 @@ This guide covers how to deploy the VeridiFi contracts to various networks.
 2. Run deployment scripts
 3. Verify contracts on explorer
 
+
