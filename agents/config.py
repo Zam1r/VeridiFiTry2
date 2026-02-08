@@ -26,3 +26,4 @@ MAX_BTC_PRICE = float(os.getenv("MAX_BTC_PRICE", "1000000"))
 MIN_XRP_PRICE = float(os.getenv("MIN_XRP_PRICE", "0"))
 MAX_XRP_PRICE = float(os.getenv("MAX_XRP_PRICE", "100"))
 
+
