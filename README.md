@@ -1,8 +1,6 @@
 # VeridiFi
 
-<p align="center">
-  <a href="https://flare.network/" target="blank"><img src="https://content.flare.network/Flare-2.svg" width="400" height="300" alt="Flare Logo" /></a>
-</p>
+
 
 **VeridiFi** is an autonomous, environmentally-conscious trading system that makes intelligent trading decisions based on verified on-chain data from the Flare Network. By combining real-time price data from FTSO (Flare Time Series Oracle) with carbon intensity verification via FDC (Flare Data Connector), VeridiFi ensures that trading activities only execute when both market conditions and environmental criteria are met.
 
