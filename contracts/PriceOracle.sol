@@ -56,3 +56,4 @@ contract PriceOracle {
         (price, timestamp) = ftsoV2.getFeedByIdInWei(XRP_USD_ID);
     }
 }
+
