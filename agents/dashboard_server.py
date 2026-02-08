@@ -29,6 +29,8 @@ current_data = {
 # Control flag for agent loop
 agents_running = True
 update_thread = None
+swarm_thread = None  # Thread for LangGraph agents
+swarm_running = False  # Track if swarm is actively running
 
 # Initialize contract interface
 contract_interface = None
@@ -434,18 +436,64 @@ def get_data():
     })
 
 
+def run_swarm_loop():
+    """Run LangGraph agents in a loop, checking agents_running flag"""
+    global agents_running, swarm_running, current_data
+    
+    while True:
+        if not agents_running:
+            time.sleep(1)  # Check every second when stopped
+            continue
+        
+        try:
+            swarm_running = True
+            log_agent("System", "🚀 Starting LangGraph agent execution...")
+            
+            # Import and run the swarm
+            from green_treasury_swarm import run_veridifi_swarm
+            
+            # Run one execution cycle
+            run_veridifi_swarm()
+            
+            log_agent("System", "✅ LangGraph agent execution complete")
+            
+            # Wait before next execution (only if agents are still running)
+            if agents_running:
+                time.sleep(30)  # Run agents every 30 seconds when active
+            else:
+                swarm_running = False
+                break
+                
+        except Exception as e:
+            log_agent("System", f"❌ Error in LangGraph agents: {str(e)}")
+            swarm_running = False
+            time.sleep(5)  # Wait before retrying
+
+
 @app.route('/api/agents/start', methods=['POST'])
 def start_agents():
-    """Start the agent system"""
-    global agents_running, current_data
+    """Start the agent system - starts both data collection and LangGraph agents"""
+    global agents_running, current_data, swarm_thread, swarm_running
     
+    started_components = []
+    
+    # Start data collection loop
     if not agents_running:
         agents_running = True
         current_data["agents_running"] = True
-        log_agent("System", "✅ Agents started - Resuming data collection")
+        started_components.append("data collection")
+    
+    # Start LangGraph swarm thread if not already running
+    if not swarm_running or (swarm_thread and not swarm_thread.is_alive()):
+        swarm_thread = threading.Thread(target=run_swarm_loop, daemon=True)
+        swarm_thread.start()
+        started_components.append("LangGraph agents")
+    
+    if started_components:
+        log_agent("System", f"✅ Agents started - {' and '.join(started_components)} active")
         return jsonify({
             "status": "success",
-            "message": "Agents started",
+            "message": f"Agents started - {' and '.join(started_components)} active",
             "agents_running": True
         })
     else:
@@ -458,16 +506,27 @@ def start_agents():
 
 @app.route('/api/agents/stop', methods=['POST'])
 def stop_agents():
-    """Stop the agent system"""
-    global agents_running, current_data
+    """Stop the agent system - stops both data collection and LangGraph agents"""
+    global agents_running, current_data, swarm_running
     
+    stopped_components = []
+    
+    # Stop data collection loop
     if agents_running:
         agents_running = False
         current_data["agents_running"] = False
-        log_agent("System", "⏸️ Agents stopped - Data collection paused")
+        stopped_components.append("data collection")
+    
+    # Stop LangGraph swarm if running
+    if swarm_running:
+        swarm_running = False
+        stopped_components.append("LangGraph agents")
+    
+    if stopped_components:
+        log_agent("System", f"⏸️ Agents stopped - {' and '.join(stopped_components)} paused")
         return jsonify({
             "status": "success",
-            "message": "Agents stopped",
+            "message": f"Agents stopped - {' and '.join(stopped_components)} paused",
             "agents_running": False
         })
     else:

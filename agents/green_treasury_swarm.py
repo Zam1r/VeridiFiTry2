@@ -1006,12 +1006,31 @@ def run_veridifi_swarm():
         "agent_history": []
     }
     
+    # Check if agents should run (for dashboard control)
+    try:
+        from dashboard_server import agents_running
+        if not agents_running:
+            print("⏸️ Agents stopped by dashboard. Skipping execution.")
+            return None
+    except (ImportError, AttributeError):
+        # If dashboard_server not available, continue normally
+        pass
+    
     # Run with streaming for live monitoring
     print("🚀 Starting VeridiFi Swarm Execution...\n")
     print("-" * 80)
     
     final_state = None
     for state in app.stream(initial_state):
+        # Check if agents should continue (for dashboard control)
+        try:
+            from dashboard_server import agents_running
+            if not agents_running:
+                print("\n⏸️ Agents stopped by dashboard. Halting execution.")
+                break
+        except (ImportError, AttributeError):
+            # If dashboard_server not available, continue normally
+            pass
         # Print each node's output
         for node_name, node_state in state.items():
             print(f"\n📊 [{node_name.upper()}] Node Output:")

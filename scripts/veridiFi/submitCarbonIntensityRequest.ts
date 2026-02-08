@@ -10,26 +10,42 @@ const { VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } =
 // Make sure to set VERIDIFI_CORE_ADDRESS in your .env file or update the address below
 
 // Carbon Intensity API configuration
-// NOTE: If the main endpoint fails, try the regional endpoint below
+// Using the official National Grid Carbon Intensity API
+// Base URL: api.carbonintensity.org.uk
+// Documentation: https://carbon-intensity.github.io/api-definitions/
+
+// Option 1: Vercel serverless function (recommended - cleaner endpoint)
+// Replace with your actual Vercel deployment URL:
+// const apiUrl = "https://your-project.vercel.app/api/carbon-intensity";
+
+// Option 2: Direct UK API (original - may be blocked by FDC verifier)
 const apiUrl = "https://api.carbonintensity.org.uk/intensity";
-// Alternative endpoint (uncomment to try):
+
+// Option 3: Regional endpoint for Oxford (OX1 postcode) - uncomment to try
 // const apiUrl = "https://api.carbonintensity.org.uk/regional/intensity/2024-01-01T00:00Z/2024-01-01T23:59Z/postcode/OX1";
+
+// Option 4: Date-specific endpoint - uncomment to try
+// const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+// const apiUrl = `https://api.carbonintensity.org.uk/intensity/date/${today}`;
 
 const httpMethod = "GET";
 
-// Simplified headers - some APIs block complex User-Agent strings
-// Try minimal headers first, as some APIs block overly complex headers
+// Minimal headers - official API doesn't require authentication
+// Using minimal headers to avoid triggering bot detection
 const headers = JSON.stringify({
     "Accept": "application/json",
-    // Minimal User-Agent - some APIs block complex browser strings
     "User-Agent": "FlareFDC/1.0",
 });
 const queryParams = "{}";
 const body = "{}";
 // jq filter to extract the 'actual' intensity value
-// ✅ VERIFIED: Option 1 works! The API returns: { data: [{ intensity: { actual: <number> } }] }
-// Tested and confirmed - this filter correctly extracts the actual intensity value
-const postProcessJq = `{actual: .data[0].intensity.actual}`;
+// For UK API: { data: [{ intensity: { actual: <number> } }] }
+// For Vercel function: { actual: <number> } (already simplified)
+// 
+// If using Vercel endpoint, use: `{actual: .actual}`
+// If using UK API, use: `{actual: .data[0].intensity.actual}`
+const postProcessJq = `{actual: .data[0].intensity.actual}`; // For UK API
+// const postProcessJq = `{actual: .actual}`; // For Vercel function
 const abiSignature = `{"components": [{"internalType": "uint256", "name": "actual", "type": "uint256"}],"name": "task","type": "tuple"}`;
 
 // Configuration constants
