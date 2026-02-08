@@ -28,7 +28,16 @@ cd agents
 python3 dashboard_server.py
 ```
 
-The dashboard will be available at: **http://localhost:3000**
+The integrated Carbon Credits Market frontend will be available at: **http://localhost:3000**
+
+**Note:** The new integrated frontend includes:
+- Market Analysis (real-time statistics, charts, news)
+- Leaderboards (top performers, growth metrics)
+- Market Trading (investments, financial contracts)
+- Portfolio Management (holdings, income tracking)
+- Carbon Scanning (3D globe with company site scanning)
+
+The original dashboard is still available at: **http://localhost:3000/dashboard**
 
 ### Step 2: Start the Agents (Optional)
 
@@ -103,7 +112,14 @@ Before starting, make sure:
 
 ## 📊 What You'll See
 
-### Dashboard (http://localhost:3000)
+### Carbon Credits Market Frontend (http://localhost:3000)
+- **Market Analysis**: Real-time market statistics, CO₂ trends, credit distribution
+- **Leaderboards**: Top performers, worst performers, growth metrics
+- **Market Trading**: Invest in companies, create financial contracts (long, short, futures, options)
+- **Portfolio Management**: Track holdings, income history, ROI calculations
+- **Carbon Scanning**: Interactive 3D globe with company site scanning and Flare integration
+
+### Original Dashboard (http://localhost:3000/dashboard)
 - Live price feed (FTSO prices)
 - Carbon intensity dial
 - AI agent log
