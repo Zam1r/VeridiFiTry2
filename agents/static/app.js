@@ -1,6 +1,6 @@
 // Application State
 const state = {
-    currentTab: 'developer-green-treasury',
+    currentTab: 'market-analysis',
     selectedCompany: null,
     currentLeaderboard: 'top-performers',
     currentTradingTab: 'invest',
@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         initializeAutoReload();
         // Developer panel is now part of Green Treasury, initialize when that tab loads
+        // Initialize it when Market Analysis loads (or when Green Treasury is selected)
         if (state.currentTab === 'developer-green-treasury') {
             initializeDeveloperPanel();
         }
@@ -320,29 +321,43 @@ async function loadInitialData() {
         const marketRes = await fetch(`${API_BASE}/market`);
         state.marketData = await marketRes.json();
 
+        // Add mock portfolio data if holdings are empty
+        if (state.user.holdings.length === 0) {
+            initializeMockPortfolio();
+        }
+
         updateUserDisplay();
-        // Load Developer Green Treasury as default tab
-        if (state.currentTab === 'developer-green-treasury') {
-            loadGreenTreasury();
-        } else {
+        // Load Market Analysis as default tab
+        if (state.currentTab === 'market-analysis') {
             loadMarketAnalysis();
+        } else if (state.currentTab === 'developer-green-treasury') {
+            loadGreenTreasury();
         }
     } catch (error) {
         console.error('Error loading initial data:', error);
         // Use mock data if API fails
         loadMockData();
-        // Still load Green Treasury if it's the default tab
-        if (state.currentTab === 'developer-green-treasury') {
+        // Still load Market Analysis if it's the default tab
+        if (state.currentTab === 'market-analysis') {
+            loadMarketAnalysis();
+        } else if (state.currentTab === 'developer-green-treasury') {
             loadGreenTreasury();
         }
     }
 }
 
 function loadMockData() {
-    // Mock companies
+    // Mock companies with real names
+    const companyNames = [
+        'ACME Corporation', 'TechGlobal Industries', 'Green Energy Solutions', 'Manufacturing Co Ltd',
+        'Solar Power Systems', 'Wind Energy Group', 'EcoTech Innovations', 'Sustainable Materials Inc',
+        'Carbon Neutral Corp', 'Renewable Resources Ltd', 'Clean Transport Solutions', 'AgriTech Ventures',
+        'Ocean Cleanup Initiative', 'Forest Restoration Co', 'Hydrogen Energy Systems', 'Battery Storage Solutions',
+        'Smart Grid Technologies', 'Waste Management Plus', 'Water Conservation Systems', 'Biofuel Industries'
+    ];
     state.companies = Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
-        name: `Company ${String.fromCharCode(65 + i)}`,
+        name: companyNames[i] || `Company ${String.fromCharCode(65 + i)}`,
         credits: Math.floor(Math.random() * 10000),
         debt: Math.random() > 0.7 ? Math.floor(Math.random() * 5000) : 0,
         industry: ['Tech', 'Manufacturing', 'Energy', 'Transport', 'Agriculture'][Math.floor(Math.random() * 5)],
@@ -360,8 +375,83 @@ function loadMockData() {
         marketCap: state.companies.reduce((sum, c) => sum + c.totalInvestment, 0)
     };
 
+    // Add mock portfolio data if holdings are empty
+    if (state.user.holdings.length === 0) {
+        initializeMockPortfolio();
+    }
+
     updateUserDisplay();
     loadMarketAnalysis();
+}
+
+function initializeMockPortfolio() {
+    // Use actual companies if available, otherwise use fallback company IDs
+    let companiesToUse = [];
+    
+    if (state.companies && state.companies.length > 0) {
+        // Use first 4 companies from the loaded companies
+        companiesToUse = state.companies.slice(0, 4).map(c => ({
+            id: c.id || c.companyId || `company-${c.name?.toLowerCase().replace(/\s+/g, '-')}`,
+            name: c.name || `Company ${c.id}`
+        }));
+    }
+    
+    // Fallback to known company IDs from companies.js
+    if (companiesToUse.length === 0) {
+        companiesToUse = [
+            { id: 'acme-corp', name: 'ACME Corporation' },
+            { id: 'tech-global', name: 'TechGlobal Industries' },
+            { id: 'green-energy', name: 'Green Energy Solutions' },
+            { id: 'manufacturing-co', name: 'Manufacturing Co Ltd' }
+        ];
+    }
+    
+    // Create holdings with varying investment amounts and shares
+    const investmentAmounts = [50000, 35000, 75000, 42000];
+    const shares = [5.2, 3.8, 8.5, 4.1];
+    const credits = [1250, 890, 2100, 980];
+    
+    state.user.holdings = companiesToUse.slice(0, 4).map((company, index) => ({
+        companyId: company.id,
+        companyName: company.name,
+        amount: investmentAmounts[index] || Math.floor(Math.random() * 50000 + 20000),
+        share: shares[index] || (Math.random() * 5 + 2).toFixed(1),
+        credits: credits[index] || Math.floor(Math.random() * 2000 + 500)
+    }));
+
+    // Mock income history - last 30 days
+    const today = new Date();
+    state.user.incomeHistory = [];
+    
+    // Add some income entries over the past month
+    for (let i = 0; i < 15; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - (29 - i * 2)); // Spread over 30 days
+        
+        const sources = [
+            'Carbon Credit Dividend - ACME Corp',
+            'Carbon Credit Dividend - TechGlobal',
+            'Carbon Credit Dividend - Green Energy',
+            'Trading Profit - Market Position',
+            'Verification Reward - FDC Consensus',
+            'Plasma Payout - Settlement',
+            'Investment Return - Manufacturing Co'
+        ];
+        
+        const amount = Math.random() * 500 + 100; // Between $100 and $600
+        
+        state.user.incomeHistory.push({
+            source: sources[Math.floor(Math.random() * sources.length)],
+            date: date.toISOString(),
+            amount: Math.round(amount * 100) / 100 // Round to 2 decimals
+        });
+    }
+    
+    // Sort by date (newest first)
+    state.user.incomeHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Update user credits based on holdings
+    state.user.credits = state.user.holdings.reduce((sum, h) => sum + (h.credits || 0), 0);
 }
 
 // Market Analysis Tab
@@ -369,14 +459,35 @@ function loadMarketAnalysis() {
     updateMarketStats();
     renderCO2TrendChart();
     renderCreditsDistributionChart();
+    loadMintEvents();
     loadNews();
+    
+    // Set up polling for mint events
+    if (window.mintPollInterval) {
+        clearInterval(window.mintPollInterval);
+    }
+    window.mintPollInterval = setInterval(loadMintEvents, 5000); // Poll every 5 seconds
 }
 
-function updateMarketStats() {
+async function updateMarketStats() {
     const totalCredits = state.companies.reduce((sum, c) => sum + c.credits, 0);
     const marketCap = state.companies.reduce((sum, c) => sum + c.totalInvestment, 0);
 
-    document.getElementById('total-credits').textContent = totalCredits.toLocaleString();
+    // Fetch total in circulation from mint events
+    try {
+        const response = await fetch('/api/carbon-credits/mints');
+        const data = await response.json();
+        if (data.success && data.total_in_circulation) {
+            // Use minted credits as the source of truth for total in circulation
+            document.getElementById('total-credits').textContent = data.total_in_circulation.toLocaleString();
+        } else {
+            document.getElementById('total-credits').textContent = totalCredits.toLocaleString();
+        }
+    } catch (error) {
+        // Fallback to company credits if API fails
+        document.getElementById('total-credits').textContent = totalCredits.toLocaleString();
+    }
+
     document.getElementById('global-co2').textContent = state.marketData.globalCO2.toFixed(2) + ' ppm';
     document.getElementById('active-companies').textContent = state.companies.length;
     document.getElementById('market-cap').textContent = '$' + marketCap.toLocaleString();
@@ -504,12 +615,17 @@ function renderCreditsDistributionChart() {
             .reduce((sum, c) => sum + c.credits, 0);
     });
 
-    // Set fixed height for canvas
+    // Set fixed dimensions for canvas to maintain aspect ratio
     const container = ctx.closest('.chart-container');
     if (container) {
-        ctx.style.width = '100%';
-        ctx.style.height = '100%';
-        ctx.style.maxHeight = '320px';
+        // Set a square aspect ratio to prevent stretching
+        const containerWidth = container.offsetWidth;
+        const maxSize = Math.min(containerWidth - 40, 300); // Account for padding
+        ctx.style.width = maxSize + 'px';
+        ctx.style.height = maxSize + 'px';
+        ctx.style.maxWidth = '100%';
+        ctx.style.maxHeight = '100%';
+        ctx.style.margin = '0 auto';
     }
 
     ctx.chart = new Chart(ctx, {
@@ -530,7 +646,7 @@ function renderCreditsDistributionChart() {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
+            maintainAspectRatio: true,
             layout: {
                 padding: {
                     top: 10,
@@ -603,6 +719,105 @@ function loadNews() {
             <span class="news-date">${item.date}</span>
         </div>
     `).join('');
+}
+
+// Load and display carbon credit mint events
+async function loadMintEvents() {
+    const mintEventsList = document.getElementById('mint-events-list');
+    const totalInCirculation = document.getElementById('total-in-circulation');
+    const totalMinted = document.getElementById('total-minted');
+    
+    if (!mintEventsList) return;
+
+    try {
+        const response = await fetch('/api/carbon-credits/mints');
+        const data = await response.json();
+        
+        if (data.success) {
+            const mints = data.mints || [];
+            const totalCirculation = data.total_in_circulation || 0;
+            const totalMintedAmount = data.total_minted || 0;
+            
+            // Update totals
+            if (totalInCirculation) {
+                totalInCirculation.textContent = totalCirculation.toLocaleString() + ' CC';
+            }
+            if (totalMinted) {
+                totalMinted.textContent = totalMintedAmount.toLocaleString() + ' CC';
+            }
+            
+            // Update total credits in market stats
+            updateMarketStats();
+            
+            // Render mint events
+            if (mints.length === 0) {
+                mintEventsList.innerHTML = `
+                    <div class="mint-event-placeholder">
+                        <p>No mint events yet. Waiting for Plasma to mint carbon credits...</p>
+                    </div>
+                `;
+            } else {
+                mintEventsList.innerHTML = mints.map(mint => `
+                    <div class="mint-event">
+                        <div class="mint-event-header">
+                            <div class="mint-event-title">
+                                🪙 Carbon Credit Minted
+                            </div>
+                            <div class="mint-event-amount">+${mint.amount.toLocaleString()} CC</div>
+                        </div>
+                        <div class="mint-event-details">
+                            <div class="mint-event-detail">
+                                <span class="mint-event-detail-icon">⛓️</span>
+                                <span>Blockchain: ${mint.network || 'Plasma'}</span>
+                            </div>
+                            <div class="mint-event-detail">
+                                <span class="mint-event-detail-icon">📝</span>
+                                <span>TX: <a href="${mint.explorer_url || '#'}" target="_blank" class="mint-event-tx-hash">${mint.tx_hash ? (mint.tx_hash.substring(0, 10) + '...' + mint.tx_hash.substring(mint.tx_hash.length - 8)) : 'Pending'}</a></span>
+                            </div>
+                            <div class="mint-event-detail">
+                                <span class="mint-event-detail-icon">🕐</span>
+                                <span class="mint-event-timestamp">${formatMintTimestamp(mint.timestamp)}</span>
+                            </div>
+                            ${mint.reason ? `
+                            <div class="mint-event-detail">
+                                <span class="mint-event-detail-icon">💡</span>
+                                <span>${mint.reason}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        } else {
+            console.error('Failed to load mint events:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading mint events:', error);
+        mintEventsList.innerHTML = `
+            <div class="mint-event-placeholder">
+                <p>Error loading mint events. Please try again later.</p>
+            </div>
+        `;
+    }
+}
+
+function formatMintTimestamp(timestamp) {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 60000) { // Less than 1 minute
+        return 'Just now';
+    } else if (diff < 3600000) { // Less than 1 hour
+        const minutes = Math.floor(diff / 60000);
+        return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+    } else if (diff < 86400000) { // Less than 1 day
+        const hours = Math.floor(diff / 3600000);
+        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+    } else {
+        return date.toLocaleString();
+    }
 }
 
 // Leaderboards Tab
@@ -732,6 +947,7 @@ function loadMarket() {
     renderCompanies();
     populateContractCompanies();
     loadActiveContracts();
+    renderCompanyReports();
 }
 
 function renderCompanies() {
@@ -962,6 +1178,182 @@ function loadActiveContracts() {
             <p style="font-size: 0.8rem; color: var(--text-muted);">Created: ${new Date(contract.createdAt).toLocaleDateString()}</p>
         </div>
     `).join('');
+}
+
+// Company Reports
+function generateMockCompanyReports() {
+    const companies = [
+        'ACME Corporation',
+        'TechGlobal Industries',
+        'Green Energy Solutions',
+        'Manufacturing Co Ltd',
+        'EcoTech Systems',
+        'Sustainable Materials Inc',
+        'Carbon Neutral Corp',
+        'Renewable Power Group'
+    ];
+    
+    const industries = [
+        'Technology',
+        'Manufacturing',
+        'Energy',
+        'Transportation',
+        'Agriculture',
+        'Construction'
+    ];
+    
+    const statuses = ['verified', 'pending', 'rejected'];
+    const statusWeights = [0.7, 0.25, 0.05]; // 70% verified, 25% pending, 5% rejected
+    
+    const reports = [];
+    const now = new Date();
+    
+    for (let i = 0; i < 12; i++) {
+        const daysAgo = Math.floor(Math.random() * 90); // Reports from last 90 days
+        const reportDate = new Date(now);
+        reportDate.setDate(reportDate.getDate() - daysAgo);
+        
+        const companyName = companies[Math.floor(Math.random() * companies.length)];
+        const industry = industries[Math.floor(Math.random() * industries.length)];
+        
+        // Weighted random status
+        const rand = Math.random();
+        let status = 'verified';
+        if (rand > statusWeights[0]) {
+            status = rand > statusWeights[0] + statusWeights[1] ? 'rejected' : 'pending';
+        }
+        
+        // CO2 emissions data
+        const baseCO2 = 500 + Math.random() * 1000;
+        const co2Reduction = status === 'verified' ? 5 + Math.random() * 20 : (status === 'pending' ? -2 + Math.random() * 5 : -10 - Math.random() * 10);
+        const currentCO2 = baseCO2 * (1 - co2Reduction / 100);
+        
+        // Carbon credits (only for verified reports)
+        const carbonCredits = status === 'verified' ? Math.floor(100 + Math.random() * 500) : 0;
+        
+        // Investors
+        const investors = Math.floor(50 + Math.random() * 500);
+        
+        // Total investment
+        const totalInvestment = investors * (100 + Math.random() * 500);
+        
+        // Verification details
+        const verificationMethod = status === 'verified' ? 'FDC Consensus' : (status === 'pending' ? 'Under Review' : 'Failed Verification');
+        const verificationRound = status === 'verified' ? Math.floor(1000 + Math.random() * 9000) : null;
+        
+        reports.push({
+            id: i + 1,
+            companyName: companyName,
+            industry: industry,
+            reportDate: reportDate,
+            status: status,
+            co2Emissions: {
+                current: Math.round(currentCO2),
+                previous: Math.round(baseCO2),
+                reduction: Math.round(co2Reduction * 10) / 10,
+                unit: 'tCO₂e'
+            },
+            carbonCredits: carbonCredits,
+            investors: investors,
+            totalInvestment: totalInvestment,
+            verificationMethod: verificationMethod,
+            verificationRound: verificationRound,
+            reportPeriod: `Q${Math.floor(Math.random() * 4) + 1} ${reportDate.getFullYear()}`,
+            complianceScore: status === 'verified' ? Math.floor(80 + Math.random() * 20) : (status === 'pending' ? Math.floor(60 + Math.random() * 20) : Math.floor(20 + Math.random() * 40))
+        });
+    }
+    
+    // Sort by date (most recent first)
+    reports.sort((a, b) => b.reportDate - a.reportDate);
+    
+    return reports;
+}
+
+function renderCompanyReports() {
+    const container = document.getElementById('company-reports-container');
+    if (!container) return;
+    
+    const reports = generateMockCompanyReports();
+    
+    container.innerHTML = reports.map(report => {
+        const dateStr = report.reportDate.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric' 
+        });
+        
+        const statusClass = report.status;
+        const statusIcon = report.status === 'verified' ? '✓' : (report.status === 'pending' ? '⏳' : '✗');
+        const statusText = report.status === 'verified' ? 'Verified' : (report.status === 'pending' ? 'Pending' : 'Rejected');
+        
+        const co2Change = report.co2Emissions.reduction;
+        const co2ChangeClass = co2Change > 0 ? 'positive' : 'negative';
+        const co2ChangeIcon = co2Change > 0 ? '↓' : '↑';
+        
+        return `
+            <div class="company-report-card">
+                <div class="report-header">
+                    <div>
+                        <h3 class="report-company-name">${report.companyName}</h3>
+                        <span class="report-status ${statusClass}">
+                            ${statusIcon} ${statusText}
+                        </span>
+                    </div>
+                    <div class="report-date">${dateStr}</div>
+                </div>
+                
+                <div class="report-metrics">
+                    <div class="report-metric">
+                        <span class="report-metric-label">Carbon Credits</span>
+                        <span class="report-metric-value ${report.carbonCredits > 0 ? 'positive' : ''}">${report.carbonCredits.toLocaleString()} CC</span>
+                    </div>
+                    <div class="report-metric">
+                        <span class="report-metric-label">Investors</span>
+                        <span class="report-metric-value">${report.investors.toLocaleString()}</span>
+                    </div>
+                    <div class="report-metric">
+                        <span class="report-metric-label">Total Investment</span>
+                        <span class="report-metric-value">$${report.totalInvestment.toLocaleString()}</span>
+                    </div>
+                    <div class="report-metric">
+                        <span class="report-metric-label">Compliance Score</span>
+                        <span class="report-metric-value ${report.complianceScore >= 80 ? 'positive' : (report.complianceScore < 60 ? 'negative' : '')}">${report.complianceScore}%</span>
+                    </div>
+                </div>
+                
+                <div class="report-co2-section">
+                    <div class="report-co2-title">CO₂ Emissions Report</div>
+                    <div class="report-co2-value">${report.co2Emissions.current.toLocaleString()} ${report.co2Emissions.unit}</div>
+                    <div class="report-co2-change ${co2ChangeClass}">
+                        <span>${co2ChangeIcon} ${Math.abs(co2Change).toFixed(1)}%</span>
+                        <span style="font-size: 0.75rem; opacity: 0.7;">vs previous period</span>
+                    </div>
+                </div>
+                
+                <div class="report-details">
+                    <div class="report-detail-row">
+                        <span class="report-detail-label">Industry:</span>
+                        <span class="report-detail-value">${report.industry}</span>
+                    </div>
+                    <div class="report-detail-row">
+                        <span class="report-detail-label">Report Period:</span>
+                        <span class="report-detail-value">${report.reportPeriod}</span>
+                    </div>
+                    <div class="report-detail-row">
+                        <span class="report-detail-label">Previous Emissions:</span>
+                        <span class="report-detail-value">${report.co2Emissions.previous.toLocaleString()} ${report.co2Emissions.unit}</span>
+                    </div>
+                </div>
+                
+                <div class="report-footer">
+                    <div class="report-verification-badge ${report.status === 'verified' ? 'verified' : ''}">
+                        ${report.status === 'verified' ? '✓' : ''} ${report.verificationMethod}
+                        ${report.verificationRound ? ` • Round #${report.verificationRound}` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Portfolio Tab
@@ -1935,17 +2327,35 @@ function initializeScanningCesium() {
         const cameraController = scanningViewer.scene.screenSpaceCameraController;
         cameraController.minimumZoomDistance = 10; // Can zoom in very close
         cameraController.maximumZoomDistance = 50000000; // Can zoom out very far
-        cameraController.enableZoom = true; // Explicitly enable zoom
+        
+        // Explicitly enable all camera controls
+        cameraController.enableZoom = true; // Enable zoom
         cameraController.enableRotate = true; // Enable rotation
         cameraController.enableTranslate = true; // Enable panning
         cameraController.enableTilt = true; // Enable tilting
         cameraController.enableLook = true; // Enable look around
         
-        // Enable mouse wheel zoom
+        // Enable mouse wheel zoom - ensure WHEEL is included
         cameraController.zoomEventTypes = [
             Cesium.CameraEventType.WHEEL,
             Cesium.CameraEventType.PINCH
         ];
+        
+        // Ensure the container can receive mouse events
+        const cesiumContainer = document.getElementById('cesium-container');
+        if (cesiumContainer) {
+            cesiumContainer.style.pointerEvents = 'auto';
+            cesiumContainer.style.touchAction = 'none'; // Prevent default touch behavior
+            
+            // Ensure mouse wheel events work
+            cesiumContainer.addEventListener('wheel', (e) => {
+                // Allow Cesium to handle the wheel event
+                e.stopPropagation();
+            }, { passive: false });
+        }
+        
+        // Set zoom sensitivity for smoother mouse wheel zooming
+        cameraController.zoomFactor = 2.0; // How much to zoom per wheel step
         
         // Disable shadows
         scanningViewer.shadows = false;
@@ -2316,10 +2726,13 @@ function worldToScanningScreen(worldPosition, viewer) {
 // Enhanced satellite animation
 function startScanningSatelliteAnimation(company) {
     if (!scanningViewer || !company) {
-        console.error('Viewer or company not initialized');
+        console.error('Viewer or company not initialized', { viewer: !!scanningViewer, company: !!company });
         return;
     }
-    if (scanningAnimationState.isScanning) return;
+    if (scanningAnimationState.isScanning) {
+        console.log('Scan already in progress');
+        return;
+    }
     
     scanningAnimationState.isScanning = true;
     
@@ -2332,9 +2745,35 @@ function startScanningSatelliteAnimation(company) {
     const loadingBar = document.getElementById('loading-bar');
     const scanButton = document.getElementById('scan-button');
     
+    // Verify all elements exist
+    if (!animationContainer || !satelliteLeft || !satelliteRight || !groundSatellite || 
+        !lineLeftGround || !lineRightGround || !loadingBar) {
+        console.error('Missing animation elements:', {
+            container: !!animationContainer,
+            left: !!satelliteLeft,
+            right: !!satelliteRight,
+            ground: !!groundSatellite,
+            lineLeft: !!lineLeftGround,
+            lineRight: !!lineRightGround,
+            loadingBar: !!loadingBar
+        });
+        scanningAnimationState.isScanning = false;
+        return;
+    }
+    
+    // Reset animation state
+    satelliteLeft.classList.remove('risen');
+    satelliteRight.classList.remove('risen');
+    groundSatellite.classList.remove('visible');
+    lineLeftGround.classList.remove('active');
+    lineRightGround.classList.remove('active');
+    loadingBar.style.width = '0%';
+    
     // Show animation container
     animationContainer.classList.remove('hidden');
     scanButton.disabled = true;
+    
+    console.log('Starting satellite animation for company:', company.name);
     
     // Show terminal
     showScanningTerminal();
@@ -2741,7 +3180,7 @@ async function performScanningFlareScan(company, loadingBar) {
 function setupEarthRenderingSettings() {
     const settingsToggle = document.getElementById('settings-toggle-button');
     const settingsPanel = document.getElementById('earth-settings-panel');
-    const closeSettings = document.getElementById('close-settings');
+    const closeSettings = document.getElementById('close-earth-settings'); // Fixed: use unique ID
     
     // Toggle settings panel
     if (settingsToggle && settingsPanel) {
@@ -2757,10 +3196,18 @@ function setupEarthRenderingSettings() {
         });
     }
     
+    // Close button handler
     if (closeSettings && settingsPanel) {
         closeSettings.addEventListener('click', (e) => {
             e.stopPropagation();
+            e.preventDefault();
             settingsPanel.classList.add('hidden');
+            console.log('Settings panel closed');
+        });
+    } else {
+        console.warn('Close button or panel not found:', {
+            closeButton: !!closeSettings,
+            panel: !!settingsPanel
         });
     }
     
@@ -3534,7 +3981,7 @@ async function treasuryStartAgents() {
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.textContent = '▶️ Start Agents';
+            btn.textContent = '▶️ START AGENTS';
         }
     }
 }
