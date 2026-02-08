@@ -59,6 +59,21 @@ class DataStore {
 
     generateCompanies() {
         const industries = ['Tech', 'Manufacturing', 'Energy', 'Transport', 'Agriculture'];
+        const companyNames = [
+            'ACME Corporation', 'TechGlobal Industries', 'Green Energy Solutions', 'Manufacturing Co Ltd',
+            'Solar Power Systems', 'Wind Energy Group', 'EcoTech Innovations', 'Sustainable Materials Inc',
+            'Carbon Neutral Corp', 'Renewable Resources Ltd', 'Clean Transport Solutions', 'AgriTech Ventures',
+            'Ocean Cleanup Initiative', 'Forest Restoration Co', 'Hydrogen Energy Systems', 'Battery Storage Solutions',
+            'Smart Grid Technologies', 'Waste Management Plus', 'Water Conservation Systems', 'Biofuel Industries',
+            'Electric Vehicle Motors', 'Solar Panel Manufacturing', 'Wind Turbine Systems', 'Geothermal Energy Co',
+            'Carbon Capture Tech', 'Green Building Materials', 'Sustainable Agriculture', 'Eco-Friendly Packaging',
+            'Renewable Energy Partners', 'Climate Action Group', 'Zero Waste Solutions', 'Clean Air Technologies',
+            'Sustainable Logistics', 'Green Infrastructure Co', 'Eco Manufacturing', 'Renewable Power Systems',
+            'Carbon Offset Solutions', 'Sustainable Development Corp', 'Green Innovation Labs', 'Clean Energy Ventures',
+            'Eco-Friendly Transport', 'Sustainable Supply Chain', 'Green Technology Group', 'Renewable Resources Inc',
+            'Climate Solutions Ltd', 'Eco Systems International', 'Sustainable Energy Co', 'Green Future Industries',
+            'Clean Technology Corp', 'Renewable Energy Systems', 'Sustainable Solutions Group', 'Eco Power Industries'
+        ];
         const companies = [];
 
         for (let i = 0; i < 50; i++) {
@@ -68,7 +83,7 @@ class DataStore {
             
             companies.push({
                 id: i + 1,
-                name: `Company ${String.fromCharCode(65 + (i % 26))}${Math.floor(i / 26) + 1}`,
+                name: companyNames[i % companyNames.length] + (i >= companyNames.length ? ` ${Math.floor(i / companyNames.length) + 1}` : ''),
                 credits: credits,
                 debt: hasDebt ? Math.floor(Math.random() * 5000) : 0,
                 industry: industries[Math.floor(Math.random() * industries.length)],
