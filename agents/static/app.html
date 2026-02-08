@@ -17,8 +17,8 @@
                 <span class="brand-title">VeridiFi</span>
             </div>
             <div class="nav-links">
-                <button type="button" class="nav-link active" data-tab="developer-green-treasury">Developer Green Treasury</button>
-                <button type="button" class="nav-link" data-tab="market-analysis">Market Analysis</button>
+                <button type="button" class="nav-link" data-tab="developer-green-treasury">Developer Green Treasury</button>
+                <button type="button" class="nav-link active" data-tab="market-analysis">Market Analysis</button>
                 <button type="button" class="nav-link" data-tab="leaderboards">Leaderboards</button>
                 <button type="button" class="nav-link" data-tab="market">Market</button>
                 <button type="button" class="nav-link" data-tab="portfolio">Portfolio</button>
@@ -230,7 +230,7 @@
     <!-- Main Content Container -->
     <main class="main-container">
         <!-- Developer Green Treasury Tab -->
-        <section id="developer-green-treasury" class="tab-content active">
+        <section id="developer-green-treasury" class="tab-content">
             <div class="page-header">
                 <h1>🌱 Developer Green Treasury</h1>
                 <p class="subtitle">Autonomous Multi-Agent Orchestration System</p>
@@ -246,7 +246,7 @@
                 </div>
                 <div class="agent-buttons">
                     <button type="button" class="btn-primary" id="treasury-start-btn" onclick="treasuryStartAgents()">
-                        ▶️ Start Agents
+                        ▶️ START AGENTS
                     </button>
                     <button type="button" class="btn-secondary" id="treasury-stop-btn" onclick="treasuryStopAgents()">
                         ⏸️ Stop Agents
@@ -356,7 +356,7 @@
         </section>
 
         <!-- Market Analysis Tab -->
-        <section id="market-analysis" class="tab-content">
+        <section id="market-analysis" class="tab-content active">
             <div class="page-header">
                 <h1>Market Analysis</h1>
                 <p class="subtitle">Comprehensive carbon market insights and trends</p>
@@ -405,6 +405,37 @@
                 <div class="chart-container">
                     <h2>Carbon Credits Distribution</h2>
                     <canvas id="credits-distribution-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Carbon Credit Mint Section -->
+            <div class="mint-section">
+                <div class="mint-header">
+                    <h2>🪙 Carbon Credit Minting Activity</h2>
+                    <div class="mint-stats">
+                        <div class="mint-stat">
+                            <span class="mint-stat-label">Total in Circulation</span>
+                            <span class="mint-stat-value" id="total-in-circulation">0 CC</span>
+                        </div>
+                        <div class="mint-stat">
+                            <span class="mint-stat-label">Total Minted</span>
+                            <span class="mint-stat-value" id="total-minted">0 CC</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mint-activity-container">
+                    <div class="mint-activity-header">
+                        <h3>Recent Mint Events</h3>
+                        <span class="mint-status-indicator" id="mint-status-indicator">
+                            <span class="status-dot"></span>
+                            <span>Monitoring Plasma Network</span>
+                        </span>
+                    </div>
+                    <div class="mint-events-list" id="mint-events-list">
+                        <div class="mint-event-placeholder">
+                            <p>No mint events yet. Waiting for Plasma to mint carbon credits...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -534,6 +565,17 @@
                             <div id="active-contracts-list"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Company Reports Section -->
+            <div class="company-reports-section">
+                <div class="reports-header">
+                    <h2>📊 Company Reports</h2>
+                    <p class="reports-subtitle">Recent CO₂ emissions reports and carbon credit verification</p>
+                </div>
+                <div class="reports-container" id="company-reports-container">
+                    <!-- Reports will be dynamically loaded -->
                 </div>
             </div>
         </section>
@@ -675,7 +717,7 @@
             <div id="earth-settings-panel" class="earth-settings-panel hidden">
                 <div class="settings-panel-header">
                     <h3>🌍 Earth Rendering Settings</h3>
-                    <button id="close-settings" class="settings-close-button">×</button>
+                    <button id="close-earth-settings" class="settings-close-button">×</button>
                 </div>
                 <div class="settings-panel-content">
                     <div class="setting-group">
@@ -799,44 +841,398 @@
             </svg>
         </button>
         <div class="tutorial-slides-container" id="tutorial-slides-container">
+            <!-- Slide 1: Welcome -->
             <div class="tutorial-slide" data-slide="1">
                 <div class="tutorial-content">
                     <div class="tutorial-icon">🌱</div>
                     <h2 class="tutorial-title">Welcome to VeridiFi</h2>
                     <p class="tutorial-text">
-                        VeridiFi is your comprehensive platform for carbon credit management, 
-                        market analysis, and sustainable investment tracking.
+                        VeridiFi is a revolutionary platform that brings transparency and accountability 
+                        to carbon credit markets using blockchain technology and AI-powered verification.
                     </p>
                     <p class="tutorial-text">
-                        Get started by exploring the different sections of the application.
+                        We're transforming how companies report emissions and earn carbon credits, 
+                        ensuring every credit represents real, verified environmental impact.
+                    </p>
+                    <p class="tutorial-text highlight-text">
+                        Get ready to explore a new era of sustainable finance.
                     </p>
                 </div>
             </div>
+            
+            <!-- Slide 2: The Problem -->
             <div class="tutorial-slide" data-slide="2">
                 <div class="tutorial-content">
-                    <div class="tutorial-icon">📊</div>
-                    <h2 class="tutorial-title">Market Analysis & Trading</h2>
+                    <div class="tutorial-icon-professional">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </div>
+                    <h2 class="tutorial-title">The Problem</h2>
                     <p class="tutorial-text">
-                        Track carbon credit markets, analyze trends, and make informed investment decisions.
+                        <strong>Companies lie about CO₂ emissions.</strong> Many organizations fabricate 
+                        or exaggerate their environmental data to receive carbon credits they don't deserve.
                     </p>
                     <p class="tutorial-text">
-                        Use the Market tab to invest in companies and trade carbon credits.
+                        This creates a broken system where:
+                    </p>
+                    <ul class="tutorial-list">
+                        <li>Fake carbon credits flood the market</li>
+                        <li>Real environmental progress goes unrewarded</li>
+                        <li>Trust in carbon markets erodes</li>
+                        <li>Climate goals become unachievable</li>
+                    </ul>
+                    <p class="tutorial-text highlight-text">
+                        VeridiFi solves this with blockchain-verified accountability.
                     </p>
                 </div>
             </div>
+            
+            <!-- Slide 3: The Concept -->
             <div class="tutorial-slide" data-slide="3">
                 <div class="tutorial-content">
-                    <div class="tutorial-icon">🌍</div>
-                    <h2 class="tutorial-title">Carbon Scanning</h2>
+                    <div class="tutorial-icon-professional">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                            <path d="M2 17l10 5 10-5"></path>
+                            <path d="M2 12l10 5 10-5"></path>
+                        </svg>
+                    </div>
+                    <h2 class="tutorial-title">Our Solution: Accountability</h2>
                     <p class="tutorial-text">
-                        Use our advanced scanning tools to visualize and analyze carbon emissions 
-                        across different locations and companies.
+                        VeridiFi holds companies accountable through transparent, verifiable emissions tracking.
                     </p>
+                    <div class="tutorial-concept-box">
+                        <div class="concept-item positive">
+                            <div class="concept-icon-professional">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div class="concept-content">
+                                <h3>Verified Emissions Reduction</h3>
+                                <p>Companies that prove real CO₂ reductions earn <strong>Carbon Credits (CC)</strong></p>
+                            </div>
+                        </div>
+                        <div class="concept-item negative">
+                            <div class="concept-icon-professional">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </div>
+                            <div class="concept-content">
+                                <h3>Failed Verification</h3>
+                                <p>Companies with unverified or false data accumulate <strong>$Debt</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="tutorial-text highlight-text">
+                        Real data = Rewards. False data = Consequences.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Slide 4: System Architecture -->
+            <div class="tutorial-slide tutorial-slide-architecture" data-slide="4">
+                <div class="tutorial-content-architecture">
+                    <div class="tutorial-text-side">
+                        <div class="tutorial-icon-professional">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                            </svg>
+                        </div>
+                        <h2 class="tutorial-title">System Architecture</h2>
+                        <p class="tutorial-text">
+                            VeridiFi's complete stack integrates blockchain, AI, and payment systems:
+                        </p>
+                        <p class="tutorial-text highlight-text">
+                            Integrated blockchain, AI, and payment infrastructure working in harmony.
+                        </p>
+                    </div>
+                    <div class="architecture-diagram-container">
+                        <svg class="architecture-diagram" viewBox="0 0 1200 900" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Background Grid -->
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="0.5" opacity="0.3"/>
+                                </pattern>
+                                <linearGradient id="plasmaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="analysisGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#00d4aa;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#00b894;stop-opacity:1" />
+                                </linearGradient>
+                                <linearGradient id="flareGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#0984e3;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#74b9ff;stop-opacity:1" />
+                                </linearGradient>
+                                <filter id="glow">
+                                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                                    <feMerge>
+                                        <feMergeNode in="coloredBlur"/>
+                                        <feMergeNode in="SourceGraphic"/>
+                                    </feMerge>
+                                </filter>
+                                <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                    <polygon points="0 0, 10 3, 0 6" fill="currentColor" opacity="0.7"/>
+                                </marker>
+                            </defs>
+                            <rect width="1200" height="900" fill="#0d1117"/>
+                            <rect width="1200" height="900" fill="url(#grid)"/>
+                            
+                            <!-- Row 1: Plasma Stack (Top, Centered) -->
+                            <g id="plasma-stack">
+                                <rect x="400" y="30" width="400" height="110" rx="12" fill="url(#plasmaGrad)" opacity="0.9" stroke="#6c5ce7" stroke-width="2" filter="url(#glow)"/>
+                                <text x="600" y="70" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="600">Plasma Stack</text>
+                                <text x="600" y="95" text-anchor="middle" fill="#e6edf3" font-size="14" opacity="0.9">Gasless Payment Infrastructure</text>
+                                <text x="600" y="120" text-anchor="middle" fill="#8b949e" font-size="12">Protocol-Level Paymaster</text>
+                            </g>
+                            
+                            <!-- Row 2: Analysis Stack (Below Plasma, Centered) -->
+                            <g id="analysis-stack">
+                                <rect x="400" y="170" width="400" height="130" rx="12" fill="url(#analysisGrad)" opacity="0.9" stroke="#00d4aa" stroke-width="2" filter="url(#glow)"/>
+                                <text x="600" y="210" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="600">Analysis Stack</text>
+                                <rect x="450" y="230" width="300" height="55" rx="8" fill="rgba(0,0,0,0.2)" stroke="#00d4aa" stroke-width="1"/>
+                                <text x="600" y="255" text-anchor="middle" fill="#ffffff" font-size="16" font-weight="500">LangGraph Agents</text>
+                                <text x="600" y="275" text-anchor="middle" fill="#e6edf3" font-size="12" opacity="0.9">AI-Powered Verification &amp; Decision Making</text>
+                            </g>
+                            
+                            <!-- Row 3: Users, Market, Companies (Side by Side, Below Analysis Stack) -->
+                            <g id="users">
+                                <rect x="50" y="340" width="200" height="100" rx="12" fill="#161b22" stroke="#00d4aa" stroke-width="2"/>
+                                <text x="150" y="375" text-anchor="middle" fill="#00d4aa" font-size="20" font-weight="600">Users</text>
+                                <text x="150" y="400" text-anchor="middle" fill="#e6edf3" font-size="12">Investors &amp;</text>
+                                <text x="150" y="415" text-anchor="middle" fill="#e6edf3" font-size="12">Traders</text>
+                            </g>
+                            
+                            <g id="market">
+                                <rect x="270" y="340" width="180" height="100" rx="12" fill="#161b22" stroke="#0984e3" stroke-width="2"/>
+                                <text x="360" y="375" text-anchor="middle" fill="#0984e3" font-size="20" font-weight="600">Market</text>
+                                <text x="360" y="400" text-anchor="middle" fill="#e6edf3" font-size="12">Carbon Credit</text>
+                                <text x="360" y="415" text-anchor="middle" fill="#e6edf3" font-size="12">Exchange</text>
+                            </g>
+                            
+                            <g id="companies">
+                                <rect x="800" y="340" width="200" height="100" rx="12" fill="#161b22" stroke="#6c5ce7" stroke-width="2"/>
+                                <text x="900" y="375" text-anchor="middle" fill="#6c5ce7" font-size="20" font-weight="600">Companies</text>
+                                <text x="900" y="400" text-anchor="middle" fill="#e6edf3" font-size="12">Emissions</text>
+                                <text x="900" y="415" text-anchor="middle" fill="#e6edf3" font-size="12">Reporting</text>
+                            </g>
+                            
+                            <!-- Row 4: Flare Stack (Below Users/Market/Companies, Centered) -->
+                            <g id="flare-stack">
+                                <rect x="400" y="480" width="400" height="130" rx="12" fill="url(#flareGrad)" opacity="0.9" stroke="#0984e3" stroke-width="2" filter="url(#glow)"/>
+                                <text x="600" y="520" text-anchor="middle" fill="#ffffff" font-size="24" font-weight="600">Flare Stack</text>
+                                <rect x="420" y="540" width="160" height="55" rx="8" fill="rgba(0,0,0,0.2)" stroke="#0984e3" stroke-width="1"/>
+                                <rect x="620" y="540" width="160" height="55" rx="8" fill="rgba(0,0,0,0.2)" stroke="#0984e3" stroke-width="1"/>
+                                <text x="500" y="565" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="500">FTSO</text>
+                                <text x="500" y="580" text-anchor="middle" fill="#e6edf3" font-size="11">Price Oracle</text>
+                                <text x="700" y="565" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="500">FDC</text>
+                                <text x="700" y="580" text-anchor="middle" fill="#e6edf3" font-size="11">Data Consensus</text>
+                            </g>
+                            
+                            <!-- Row 5: Data Sources (Bottom, Side by Side) -->
+                            <g id="data-sources">
+                                <rect x="50" y="650" width="200" height="80" rx="12" fill="#161b22" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="4,4"/>
+                                <text x="150" y="680" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="500">User Database</text>
+                                <text x="150" y="700" text-anchor="middle" fill="#6e7681" font-size="11">(Supabase)</text>
+                                
+                                <rect x="270" y="650" width="180" height="80" rx="12" fill="#161b22" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="4,4"/>
+                                <text x="360" y="680" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="500">Real-time Prices</text>
+                                <text x="360" y="700" text-anchor="middle" fill="#6e7681" font-size="11">Market Data</text>
+                                
+                                <rect x="800" y="650" width="200" height="80" rx="12" fill="#161b22" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="4,4"/>
+                                <text x="900" y="680" text-anchor="middle" fill="#8b949e" font-size="14" font-weight="500">Carbon Sources</text>
+                                <text x="900" y="700" text-anchor="middle" fill="#6e7681" font-size="11">All Carbon Data</text>
+                            </g>
+                            
+                            <!-- Arrows: Analysis Stack to Plasma Stack (from top edge of Analysis at y=170 to bottom edge of Plasma at y=140) -->
+                            <path d="M 600 170 L 600 140" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Plasma Stack to Users (from left edge of Plasma at x=500, y=140 to right edge of Users at x=250, y=340) -->
+                            <path d="M 500 140 Q 300 250 250 340" fill="none" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Plasma Stack to Companies (from right edge of Plasma at x=700, y=140 to left edge of Companies at x=800, y=340) -->
+                            <path d="M 700 140 Q 900 250 800 340" fill="none" stroke="#6c5ce7" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Users to Market (from right edge of Users at x=250 to left edge of Market at x=270, both at y=390) -->
+                            <path d="M 250 390 L 270 390" fill="none" stroke="#0984e3" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Companies to Market (from left edge of Companies at x=800 to right edge of Market at x=450, both at y=390) -->
+                            <path d="M 800 390 L 450 390" fill="none" stroke="#0984e3" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Market to Companies (from right edge of Market at x=450 to left edge of Companies at x=800, both at y=420) -->
+                            <path d="M 450 420 L 800 420" fill="none" stroke="#0984e3" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Users to Analysis Stack (from top edge of Users at y=340 to bottom edge of Analysis at y=300) -->
+                            <path d="M 150 340 Q 300 250 500 300" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Companies to Analysis Stack (from top edge of Companies at y=340 to bottom edge of Analysis at y=300) -->
+                            <path d="M 900 340 Q 850 250 700 300" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: Market to Analysis Stack (from top edge of Market at y=340 to bottom edge of Analysis at y=300) -->
+                            <path d="M 360 340 Q 450 250 500 300" fill="none" stroke="#00d4aa" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: FTSO to Market (from top edge of FTSO at y=540 to bottom edge of Market at y=440) -->
+                            <path d="M 500 540 L 360 440" fill="none" stroke="#0984e3" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: FDC to Companies (from top edge of FDC at y=540 to bottom edge of Companies at y=440) -->
+                            <path d="M 700 540 L 900 440" fill="none" stroke="#0984e3" stroke-width="2" marker-end="url(#arrowhead)" opacity="0.7"/>
+                            
+                            <!-- Arrows: FTSO fetches Real-time Prices (from bottom edge of FTSO at y=595 to top edge of Real-time Prices at y=650) -->
+                            <path d="M 500 595 L 360 650" fill="none" stroke="#0984e3" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrowhead)" opacity="0.5"/>
+                            <text x="430" y="620" fill="#0984e3" font-size="10" opacity="0.7">Fetches</text>
+                            
+                            <!-- Arrows: FDC to Carbon Sources (from bottom edge of FDC at y=595 to top edge of Carbon Sources at y=650) -->
+                            <path d="M 700 595 L 900 650" fill="none" stroke="#0984e3" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrowhead)" opacity="0.5"/>
+                            
+                            <!-- Arrows: User Database to Users (from top edge of User Database at y=650 to bottom edge of Users at y=440) -->
+                            <path d="M 150 650 L 150 440" fill="none" stroke="#8b949e" stroke-width="1.5" stroke-dasharray="3,3" marker-end="url(#arrowhead)" opacity="0.5"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Slide 5: LangFlow Bots Details -->
+            <div class="tutorial-slide" data-slide="5">
+                <div class="tutorial-content">
+                    <div class="tutorial-icon-professional">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                            <line x1="15" y1="3" x2="15" y2="21"></line>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="3" y1="15" x2="21" y2="15"></line>
+                        </svg>
+                    </div>
+                    <h2 class="tutorial-title">LangFlow Bots: The AI Verifiers</h2>
                     <p class="tutorial-text">
-                        Explore the 3D globe to see real-time carbon data.
+                        Our intelligent agents work 24/7 to verify emissions data:
+                    </p>
+                    <div class="tutorial-bot-features">
+                        <div class="bot-feature">
+                            <div class="feature-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="M21 21l-4.35-4.35"></path>
+                                </svg>
+                            </div>
+                            <h3>Continuous Monitoring</h3>
+                            <p>Bots scan company reports, satellite data, and IoT sensors in real-time</p>
+                        </div>
+                        <div class="bot-feature">
+                            <div class="feature-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                            </div>
+                            <h3>Data Analysis</h3>
+                            <p>AI algorithms cross-reference multiple data sources to detect discrepancies</p>
+                        </div>
+                        <div class="bot-feature">
+                            <div class="feature-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <h3>Automated Verification</h3>
+                            <p>Verified data is automatically recorded on Flare blockchain</p>
+                        </div>
+                        <div class="bot-feature">
+                            <div class="feature-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                </svg>
+                            </div>
+                            <h3>Anomaly Detection</h3>
+                            <p>Bots flag suspicious patterns and trigger manual audits when needed</p>
+                        </div>
+                    </div>
+                    <p class="tutorial-text highlight-text">
+                        No human bias. No manipulation. Just verified truth.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Slide 6: Application Features -->
+            <div class="tutorial-slide" data-slide="6">
+                <div class="tutorial-content">
+                    <div class="tutorial-icon-professional">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="3" y1="9" x2="21" y2="9"></line>
+                            <line x1="9" y1="21" x2="9" y2="9"></line>
+                        </svg>
+                    </div>
+                    <h2 class="tutorial-title">Explore VeridiFi Features</h2>
+                    <p class="tutorial-text">
+                        Your dashboard provides powerful tools powered by Flare, Bots, and Plasma:
+                    </p>
+                    <div class="tutorial-features-grid">
+                        <div class="feature-card">
+                            <div class="feature-card-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                    <path d="M2 17l10 5 10-5"></path>
+                                    <path d="M2 12l10 5 10-5"></path>
+                                </svg>
+                            </div>
+                            <h3>Developer Green Treasury</h3>
+                            <p>Monitor AI agents, view live carbon data, and track Flare Stack integrations</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                                </svg>
+                            </div>
+                            <h3>Market Analysis</h3>
+                            <p>Analyze carbon credit markets with real-time data from verified sources</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                </svg>
+                            </div>
+                            <h3>Portfolio & Trading</h3>
+                            <p>Invest in verified companies and receive Plasma-powered instant payouts</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card-icon-professional">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="2" x2="12" y2="6"></line>
+                                    <line x1="12" y1="18" x2="12" y2="22"></line>
+                                    <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                                    <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                                    <line x1="2" y1="12" x2="6" y2="12"></line>
+                                    <line x1="18" y1="12" x2="22" y2="12"></line>
+                                    <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                                    <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                                </svg>
+                            </div>
+                            <h3>Carbon Scanning</h3>
+                            <p>Visualize emissions data on a 3D globe with bot-verified information</p>
+                        </div>
+                    </div>
+                    <p class="tutorial-text highlight-text">
+                        Ready to start? Click Finish to begin your journey!
                     </p>
                     <button type="button" class="tutorial-btn-finish" id="tutorial-finish">
-                        Finish
+                        Finish & Start Exploring
                     </button>
                 </div>
             </div>
@@ -851,6 +1247,9 @@
                 <span class="tutorial-dot active" data-slide="1"></span>
                 <span class="tutorial-dot" data-slide="2"></span>
                 <span class="tutorial-dot" data-slide="3"></span>
+                <span class="tutorial-dot" data-slide="4"></span>
+                <span class="tutorial-dot" data-slide="5"></span>
+                <span class="tutorial-dot" data-slide="6"></span>
             </div>
         </div>
     </div>
