@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VeridiFi</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/cesium@1.110/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🌱</span>
+                <span class="brand-title">VeridiFi</span>
+            </div>
+            <div class="nav-links">
+                <button type="button" class="nav-link active" data-tab="developer-green-treasury">Developer Green Treasury</button>
+                <button type="button" class="nav-link" data-tab="market-analysis">Market Analysis</button>
+                <button type="button" class="nav-link" data-tab="leaderboards">Leaderboards</button>
+                <button type="button" class="nav-link" data-tab="market">Market</button>
+                <button type="button" class="nav-link" data-tab="portfolio">Portfolio</button>
+                <button type="button" class="nav-link" data-tab="scanning">Scanning</button>
+                <button type="button" class="nav-link admin-btn" id="admin-toggle" onclick="toggleAdminDashboard()">
+                    Admin
+                </button>
+            </div>
+            <div class="nav-user">
+                <span class="user-credits" id="user-credits">0 CC</span>
+                <span class="user-balance" id="user-balance">$0.00</span>
+                <button type="button" class="nav-link logout-btn" id="logout-btn" onclick="handleLogout()" style="display: none;">
+                    Log Out
+                </button>
+            </div>
+            <div class="nav-menu">
+                <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="menu-dropdown" id="menu-dropdown">
+                    <a href="#" class="menu-item" id="menu-profile">
+                        <span class="menu-icon">👤</span>
+                        <span>Profile</span>
+                    </a>
+                    <a href="#" class="menu-item" id="menu-settings">
+                        <span class="menu-icon">⚙️</span>
+                        <span>Settings</span>
+                    </a>
+                    <a href="#" class="menu-item" id="menu-logout" onclick="handleLogout(); return false;">
+                        <span class="menu-icon">🚪</span>
+                        <span>Log Out</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profile-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Profile</h2>
+                <button type="button" class="modal-close" id="close-profile">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-section">
+                    <div class="profile-avatar">👤</div>
+                    <h3>User Account</h3>
+                    <div class="profile-info">
+                        <div class="info-row">
+                            <span class="info-label">Total Carbon Credits:</span>
+                            <span class="info-value" id="profile-credits">0 CC</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Account Balance:</span>
+                            <span class="info-value" id="profile-balance">$0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Total Investments:</span>
+                            <span class="info-value" id="profile-investments">$0.00</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Active Contracts:</span>
+                            <span class="info-value" id="profile-contracts">0</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Member Since:</span>
+                            <span class="info-value" id="profile-joined">2024</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button type="button" class="modal-close" id="close-settings">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>Preferences</h3>
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span>Dark Mode</span>
+                            <input type="checkbox" id="dark-mode" checked disabled>
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span>Email Notifications</span>
+                            <input type="checkbox" id="email-notifications" checked>
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span>Price Alerts</span>
+                            <input type="checkbox" id="price-alerts">
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Display</h3>
+                    <div class="setting-item">
+                        <label for="currency-select" class="setting-label">Currency</label>
+                        <select id="currency-select" class="setting-select">
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="date-format" class="setting-label">Date Format</label>
+                        <select id="date-format" class="setting-select">
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard Modal -->
+    <div class="modal" id="admin-modal">
+        <div class="modal-content admin-modal-content">
+            <div class="modal-header">
+                <h2>🔐 Admin Privileges</h2>
+                <button type="button" class="modal-close" id="close-admin">&times;</button>
+            </div>
+            <div class="modal-body admin-body">
+                <div class="admin-section">
+                    <h3>User Management</h3>
+                    
+                    <div class="admin-control-group">
+                        <label for="admin-wallet-input">Update User Wallet Address</label>
+                        <div class="admin-input-group">
+                            <input type="text" id="admin-wallet-input" class="admin-input" placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb">
+                            <button type="button" class="admin-btn-primary" onclick="adminUpdateWallet()">Update Wallet</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-control-group">
+                        <label for="admin-credits-input">Update Carbon Credits</label>
+                        <div class="admin-input-group">
+                            <input type="number" id="admin-credits-input" class="admin-input" placeholder="0" min="0" step="1">
+                            <button type="button" class="admin-btn-primary" onclick="adminUpdateCredits()">Update Credits</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-control-group">
+                        <label for="admin-balance-input">Add Money to Account</label>
+                        <div class="admin-input-group">
+                            <input type="number" id="admin-balance-input" class="admin-input" placeholder="0.00" min="0" step="0.01">
+                            <button type="button" class="admin-btn-primary" onclick="adminAddMoney()">Add Money</button>
+                        </div>
+                    </div>
+
+                    <div class="admin-control-group">
+                        <label>Manual Plasma Payout</label>
+                        <div class="admin-input-group">
+                            <input type="number" id="admin-payout-amount" class="admin-input" placeholder="1.0" min="0" step="0.01" value="1.0">
+                            <button type="button" class="admin-btn-primary" onclick="adminPayUser()">Pay User via Plasma</button>
+                        </div>
+                        <p class="admin-hint">Sends USDT to user's configured wallet address</p>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>Current User Status</h3>
+                    <div class="admin-status-grid">
+                        <div class="admin-status-item">
+                            <span class="admin-status-label">Wallet Address:</span>
+                            <span class="admin-status-value" id="admin-display-wallet">Not set</span>
+                        </div>
+                        <div class="admin-status-item">
+                            <span class="admin-status-label">Carbon Credits:</span>
+                            <span class="admin-status-value" id="admin-display-credits">0 CC</span>
+                        </div>
+                        <div class="admin-status-item">
+                            <span class="admin-status-label">Account Balance:</span>
+                            <span class="admin-status-value" id="admin-display-balance">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-section">
+                    <h3>System Actions</h3>
+                    <div class="admin-action-buttons">
+                        <button type="button" class="admin-btn-secondary" onclick="adminRefreshStatus()">Refresh Status</button>
+                        <button type="button" class="admin-btn-secondary" onclick="adminResetUser()">Reset User Data</button>
+                    </div>
+                </div>
+
+                <div class="admin-message" id="admin-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <main class="main-container">
+        <!-- Developer Green Treasury Tab -->
+        <section id="developer-green-treasury" class="tab-content active">
+            <div class="page-header">
+                <h1>🌱 Developer Green Treasury</h1>
+                <p class="subtitle">Autonomous Multi-Agent Orchestration System</p>
+            </div>
+            
+            <div class="treasury-controls">
+                <div class="agent-status">
+                    <span class="status-label">Agent Status:</span>
+                    <span class="status-indicator">
+                        <span class="status-dot" id="treasury-status-dot"></span>
+                        <span id="treasury-status-text">Checking...</span>
+                    </span>
+                </div>
+                <div class="agent-buttons">
+                    <button type="button" class="btn-primary" id="treasury-start-btn" onclick="treasuryStartAgents()">
+                        ▶️ Start Agents
+                    </button>
+                    <button type="button" class="btn-secondary" id="treasury-stop-btn" onclick="treasuryStopAgents()">
+                        ⏸️ Stop Agents
+                    </button>
+                </div>
+            </div>
+
+            <div class="treasury-dashboard-grid">
+                <!-- Live Truth Feed -->
+                <div class="treasury-card">
+                    <div class="treasury-card-title">
+                        <span class="treasury-status-indicator"></span>
+                        Live Truth Feed
+                    </div>
+                    <div class="treasury-price-feed">
+                        <div class="treasury-price-item">
+                            <div>
+                                <div class="treasury-price-label">BTC/USD</div>
+                                <div class="treasury-price-value" id="treasury-btc-price">$0.00</div>
+                                <div class="treasury-price-timestamp" id="treasury-btc-timestamp">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="treasury-price-item">
+                            <div>
+                                <div class="treasury-price-label">XRP/USD</div>
+                                <div class="treasury-price-value" id="treasury-xrp-price">$0.00</div>
+                                <div class="treasury-price-timestamp" id="treasury-xrp-timestamp">Loading...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Carbon Dial -->
+                <div class="treasury-card">
+                    <div class="treasury-card-title">
+                        🌍 Carbon Dial
+                    </div>
+                    <div class="treasury-carbon-dial-container">
+                        <div class="treasury-dial-wrapper">
+                            <div class="treasury-dial" id="treasury-carbon-dial">
+                                <div class="treasury-dial-inner">
+                                    <div class="treasury-dial-value" id="treasury-dial-value">0</div>
+                                    <div class="treasury-dial-label">gCO₂/kWh</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="treasury-dial-status" id="treasury-dial-status">Loading...</div>
+                        <div class="treasury-carbon-info">
+                            <div class="treasury-carbon-info-item">
+                                <span class="treasury-carbon-info-label">Region:</span>
+                                <span class="treasury-carbon-info-value" id="treasury-carbon-region">Oxford</span>
+                            </div>
+                            <div class="treasury-carbon-info-item">
+                                <span class="treasury-carbon-info-label">Source:</span>
+                                <span class="treasury-carbon-info-value" id="treasury-carbon-source">FDC</span>
+                            </div>
+                            <div class="treasury-carbon-info-item">
+                                <span class="treasury-carbon-info-label">Last Update:</span>
+                                <span class="treasury-carbon-info-value" id="treasury-carbon-update">--</span>
+                            </div>
+                        </div>
+                        <div class="treasury-fdc-badge" id="treasury-fdc-badge">
+                            <span class="treasury-verification-icon">⏳</span>
+                            <div class="treasury-verification-text">
+                                <span class="treasury-verification-status" id="treasury-verification-status">Waiting for Consensus</span>
+                                <span class="treasury-verification-message" id="treasury-verification-message">AI requires FDC proof verification</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Agent Log -->
+            <div class="treasury-card">
+                <div class="treasury-card-title">
+                    🤖 AI Agent Log
+                </div>
+                <div class="treasury-ai-log-container">
+                    <div class="treasury-ai-log" id="treasury-ai-log">
+                        <div class="treasury-log-entry">
+                            <span class="treasury-log-timestamp">[00:00:00]</span>
+                            <span class="treasury-log-agent">[System]</span>
+                            <span class="treasury-log-message">Initializing Green Treasury system...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Developer Terminal -->
+            <div class="treasury-card">
+                <div class="treasury-card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span>⚡ Agent Terminal</span>
+                    <button type="button" class="btn-clear-terminal" id="clear-terminal-btn">Clear</button>
+                </div>
+                <div class="developer-terminal-container" style="height: 500px;">
+                    <div class="terminal-body">
+                        <div id="agent-terminal-content" class="terminal-content">
+                            <div class="terminal-log terminal-log-system">
+                                <span class="log-timestamp">[--:--:--]</span>
+                                <span class="log-icon">ℹ️</span>
+                                <span class="log-message">Connecting to agent system...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Analysis Tab -->
+        <section id="market-analysis" class="tab-content">
+            <div class="page-header">
+                <h1>Market Analysis</h1>
+                <p class="subtitle">Comprehensive carbon market insights and trends</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-chart"></div>
+                    <div class="stat-info">
+                        <h3>Total Credits in Circulation</h3>
+                        <p class="stat-value" id="total-credits">0</p>
+                        <p class="stat-change positive">+0.0%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-globe"></div>
+                    <div class="stat-info">
+                        <h3>Global CO₂ Level</h3>
+                        <p class="stat-value" id="global-co2">0 ppm</p>
+                        <p class="stat-change" id="co2-change">+0.0%</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-building"></div>
+                    <div class="stat-info">
+                        <h3>Active Companies</h3>
+                        <p class="stat-value" id="active-companies">0</p>
+                        <p class="stat-change positive">+0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stat-icon-dollar"></div>
+                    <div class="stat-info">
+                        <h3>Market Cap</h3>
+                        <p class="stat-value" id="market-cap">$0</p>
+                        <p class="stat-change positive">+0.0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="chart-container">
+                    <h2>CO₂ Trends (Last 12 Months)</h2>
+                    <canvas id="co2-trend-chart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h2>Carbon Credits Distribution</h2>
+                    <canvas id="credits-distribution-chart"></canvas>
+                </div>
+            </div>
+
+            <div class="news-section">
+                <h2>Market News</h2>
+                <div class="news-list" id="news-list">
+                    <!-- News items will be dynamically loaded -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Leaderboards Tab -->
+        <section id="leaderboards" class="tab-content">
+            <div class="page-header">
+                <h1>Leaderboards</h1>
+                <p class="subtitle">Top performers and market insights</p>
+            </div>
+
+            <div class="leaderboard-tabs">
+                <button class="leaderboard-tab active" data-leaderboard="top-performers">Top Performers</button>
+                <button class="leaderboard-tab" data-leaderboard="worst-performers">Worst Performers</button>
+                <button class="leaderboard-tab" data-leaderboard="best-comparative">Best Comparative</button>
+                <button class="leaderboard-tab" data-leaderboard="turnarounds">Best Turnarounds</button>
+                <button class="leaderboard-tab" data-leaderboard="growth">Fastest Growth</button>
+            </div>
+
+            <div class="leaderboard-content">
+                <div id="top-performers" class="leaderboard-section active">
+                    <h2>Top Carbon Credit Earners</h2>
+                    <div class="leaderboard-table" id="top-performers-list"></div>
+                </div>
+                <div id="worst-performers" class="leaderboard-section">
+                    <h2>Companies in Debt</h2>
+                    <div class="leaderboard-table" id="worst-performers-list"></div>
+                </div>
+                <div id="best-comparative" class="leaderboard-section">
+                    <h2>Best Performance vs Industry Average</h2>
+                    <div class="leaderboard-table" id="best-comparative-list"></div>
+                </div>
+                <div id="turnarounds" class="leaderboard-section">
+                    <h2>Best Turnarounds</h2>
+                    <div class="leaderboard-table" id="turnarounds-list"></div>
+                </div>
+                <div id="growth" class="leaderboard-section">
+                    <h2>Fastest Growing Companies</h2>
+                    <div class="leaderboard-table" id="growth-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Market Interactability Tab -->
+        <section id="market" class="tab-content">
+            <div class="page-header">
+                <h1>Market</h1>
+                <p class="subtitle">Invest in companies and trade carbon credits</p>
+            </div>
+
+            <div class="market-layout">
+                <div class="companies-list">
+                    <div class="search-bar">
+                        <input type="text" id="company-search" placeholder="Search companies...">
+                    </div>
+                    <div class="companies-container" id="companies-container">
+                        <!-- Companies will be dynamically loaded -->
+                    </div>
+                </div>
+
+                <div class="trading-panel">
+                    <div class="trading-tabs">
+                        <button class="trading-tab active" data-trading="invest">Invest</button>
+                        <button class="trading-tab" data-trading="contracts">Contracts</button>
+                    </div>
+
+                    <div id="invest-panel" class="trading-content active">
+                        <h3>Investment Details</h3>
+                        <div class="selected-company" id="selected-company">
+                            <p class="placeholder-text">Select a company to invest</p>
+                        </div>
+                        <div class="investment-form" id="investment-form" style="display: none;">
+                            <div class="form-group">
+                                <label>Investment Amount ($)</label>
+                                <input type="number" id="investment-amount" min="0" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Expected Share (%)</label>
+                                <input type="text" id="expected-share" readonly>
+                            </div>
+                            <button class="btn-primary" id="invest-btn">Invest</button>
+                        </div>
+                    </div>
+
+                    <div id="contracts-panel" class="trading-content">
+                        <h3>Financial Contracts</h3>
+                        <div class="contract-types">
+                            <button class="contract-type-btn" data-contract="long">Go Long</button>
+                            <button class="contract-type-btn" data-contract="short">Short</button>
+                            <button class="contract-type-btn" data-contract="futures">Futures</button>
+                            <button class="contract-type-btn" data-contract="options">Options</button>
+                        </div>
+                        <div class="contract-form" id="contract-form">
+                            <div class="form-group">
+                                <label>Select Company</label>
+                                <select id="contract-company">
+                                    <option value="">Choose a company...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Contract Type</label>
+                                <input type="text" id="contract-type-display" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Amount</label>
+                                <input type="number" id="contract-amount" min="0" step="0.01">
+                            </div>
+                            <div class="form-group" id="contract-expiry-group" style="display: none;">
+                                <label>Expiry Date</label>
+                                <input type="date" id="contract-expiry">
+                            </div>
+                            <div class="form-group" id="contract-strike-group" style="display: none;">
+                                <label>Strike Price</label>
+                                <input type="number" id="contract-strike" min="0" step="0.01">
+                            </div>
+                            <button class="btn-primary" id="create-contract-btn">Create Contract</button>
+                        </div>
+                        <div class="active-contracts">
+                            <h4>Active Contracts</h4>
+                            <div id="active-contracts-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Portfolio Tab -->
+        <section id="portfolio" class="tab-content">
+            <div class="page-header">
+                <h1>Portfolio</h1>
+                <p class="subtitle">Manage your investments and track performance</p>
+            </div>
+
+            <div class="portfolio-stats">
+                <div class="portfolio-stat-card">
+                    <h3>Total Carbon Credits</h3>
+                    <p class="stat-value-large" id="portfolio-credits">0 CC</p>
+                </div>
+                <div class="portfolio-stat-card">
+                    <h3>Total Value</h3>
+                    <p class="stat-value-large" id="portfolio-value">$0.00</p>
+                </div>
+                <div class="portfolio-stat-card">
+                    <h3>Total Income</h3>
+                    <p class="stat-value-large positive" id="portfolio-income">$0.00</p>
+                </div>
+                <div class="portfolio-stat-card">
+                    <h3>ROI</h3>
+                    <p class="stat-value-large" id="portfolio-roi">0.00%</p>
+                </div>
+            </div>
+
+            <div class="portfolio-content">
+                <div class="holdings-section">
+                    <h2>Holdings</h2>
+                    <div class="holdings-list" id="holdings-list">
+                        <!-- Holdings will be dynamically loaded -->
+                    </div>
+                </div>
+
+                <div class="income-section">
+                    <h2>Income History</h2>
+                    <div class="income-chart-container">
+                        <canvas id="income-chart"></canvas>
+                    </div>
+                    <div class="income-list" id="income-list">
+                        <!-- Income transactions will be dynamically loaded -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="wallet-config-section">
+                <h2>USDT Payout Wallet</h2>
+                <p class="wallet-description">Enter your wallet address to receive USDT rewards via Plasma (gasless transactions)</p>
+                <div class="wallet-input-container">
+                    <div class="wallet-input-group">
+                        <label for="wallet-address-input">Wallet Address</label>
+                        <div class="wallet-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="wallet-address-input" 
+                                class="wallet-input" 
+                                placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+                                maxlength="42"
+                            />
+                            <button type="button" class="wallet-save-btn" id="wallet-save-btn" onclick="saveWalletAddress()">
+                                Save
+                            </button>
+                        </div>
+                        <div class="wallet-status" id="wallet-status">
+                            <span class="wallet-status-text" id="wallet-status-text"></span>
+                        </div>
+                        <div class="wallet-info">
+                            <p class="wallet-info-text">
+                                <strong>Supported:</strong> Any Ethereum-compatible wallet address (MetaMask, Coinbase Wallet, etc.)<br>
+                                <strong>Network:</strong> Plasma Testnet<br>
+                                <strong>Token:</strong> USDT (Tether USD)<br>
+                                <strong>Gas Fees:</strong> $0.00 (covered by Plasma Paymaster)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="plasma-terminal-section">
+                <h2>Plasma Commands</h2>
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <div class="terminal-controls">
+                            <span class="terminal-dot terminal-dot-red"></span>
+                            <span class="terminal-dot terminal-dot-yellow"></span>
+                            <span class="terminal-dot terminal-dot-green"></span>
+                        </div>
+                        <span class="terminal-title">plasma-testnet</span>
+                    </div>
+                    <div class="terminal-body" id="plasma-terminal">
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">$</span>
+                            <span class="terminal-text">Waiting for Plasma commands...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Scanning Tab -->
+        <section id="scanning" class="tab-content">
+            <div id="cesium-container"></div>
+            <div id="info-panel">
+                <h2>Carbon Scan</h2>
+                <div id="company-selection">
+                    <label for="company-select" class="select-label">Select Company:</label>
+                    <select id="company-select" class="company-select">
+                        <option value="">-- Select a company --</option>
+                    </select>
+                </div>
+                <div id="company-info" class="company-info hidden">
+                    <div class="company-details">
+                        <h3 id="company-name"></h3>
+                        <p id="company-location" class="company-location"></p>
+                        <p id="company-sites-count" class="company-sites-count"></p>
+                    </div>
+                </div>
+                <div id="error-message" class="error-message hidden"></div>
+                <button id="scan-button" class="scan-button" disabled>Start Scan</button>
+                <div id="location-search" class="location-search-section">
+                    <p class="section-divider">Or search location:</p>
+                    <input type="text" id="location-input" placeholder="Search location..." class="location-input">
+                    <button id="search-button" class="search-button">Search</button>
+                </div>
+                <div id="zoom-controls" class="zoom-controls-section">
+                    <p class="section-divider">Zoom Controls:</p>
+                    <div class="zoom-buttons">
+                        <button id="zoom-in-button" class="zoom-button" title="Zoom In">+</button>
+                        <button id="zoom-out-button" class="zoom-button" title="Zoom Out">−</button>
+                        <button id="zoom-reset-button" class="zoom-button" title="Reset View">⌂</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Earth Rendering Settings Panel -->
+            <div id="earth-settings-panel" class="earth-settings-panel hidden">
+                <div class="settings-panel-header">
+                    <h3>🌍 Earth Rendering Settings</h3>
+                    <button id="close-settings" class="settings-close-button">×</button>
+                </div>
+                <div class="settings-panel-content">
+                    <div class="setting-group">
+                        <label for="imagery-provider" class="setting-label-text">Imagery Provider:</label>
+                        <select id="imagery-provider" class="setting-select">
+                            <option value="osm">OpenStreetMap (Street View)</option>
+                            <option value="esri-street">ESRI World Street Map</option>
+                            <option value="esri-imagery">ESRI World Imagery (Satellite)</option>
+                            <option value="esri-topo">ESRI World Topographic</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label class="setting-toggle-label">
+                            <span>Enable Lighting</span>
+                            <input type="checkbox" id="enable-lighting" checked>
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label class="setting-toggle-label">
+                            <span>Show Atmosphere</span>
+                            <input type="checkbox" id="show-atmosphere" checked>
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label for="base-color" class="setting-label-text">Base Color:</label>
+                        <div class="color-picker-container">
+                            <input type="color" id="base-color" value="#ffffff" class="color-picker">
+                            <input type="text" id="base-color-text" value="#ffffff" class="color-text-input" placeholder="#ffffff">
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <label for="atmosphere-opacity" class="setting-label-text">Atmosphere Opacity:</label>
+                        <input type="range" id="atmosphere-opacity" min="0" max="100" value="50" class="setting-slider">
+                        <span class="slider-value" id="atmosphere-opacity-value">50%</span>
+                    </div>
+                    <div class="setting-group">
+                        <label for="globe-brightness" class="setting-label-text">Globe Brightness:</label>
+                        <input type="range" id="globe-brightness" min="0" max="200" value="100" class="setting-slider">
+                        <span class="slider-value" id="globe-brightness-value">100%</span>
+                    </div>
+                    <div class="setting-group">
+                        <label class="setting-toggle-label">
+                            <span>Show Terrain</span>
+                            <input type="checkbox" id="show-terrain" checked>
+                            <span class="toggle-switch"></span>
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <button id="reset-settings" class="settings-reset-button">Reset to Defaults</button>
+                    </div>
+                </div>
+            </div>
+            <button id="settings-toggle-button" class="settings-toggle-button" title="Earth Rendering Settings">
+                ⚙️
+            </button>
+            <div id="analysis-panel" class="analysis-panel hidden">
+                <div class="analysis-header">
+                    <h2>Scan Results</h2>
+                    <button id="close-analysis" class="close-button">×</button>
+                </div>
+                <div id="analysis-content" class="analysis-content">
+                    <!-- Analysis results will be populated here -->
+                </div>
+            </div>
+            <div id="satellite-animation" class="satellite-animation hidden">
+                <div id="satellite-left" class="satellite">🛰️</div>
+                <div id="satellite-right" class="satellite">🛰️</div>
+                <div id="ground-satellite" class="ground-satellite">
+                    <pre class="satellite-dish-art">            ___
+           /   \
+          /     \
+         |       |
+         |_______|
+          \     /
+           \___/
+            |
+            |
+           / \
+          /   \
+         |     |
+         |_____|
+          \   /
+           \_/</pre>
+                </div>
+                <svg id="satellite-lines" class="satellite-lines">
+                    <line id="line-left-ground" class="signal-line ground-line"></line>
+                    <line id="line-right-ground" class="signal-line ground-line"></line>
+                </svg>
+                <div id="loading-bar-container" class="loading-bar-container">
+                    <div id="loading-bar" class="loading-bar"></div>
+                </div>
+            </div>
+            <div id="flare-terminal" class="flare-terminal hidden">
+                <div class="terminal-header">
+                    <div class="terminal-title">
+                        <span class="terminal-icon">⚡</span>
+                        <span>Flare Stack API Terminal</span>
+                    </div>
+                    <div class="terminal-status">
+                        <span class="status-dot"></span>
+                        <span>SCANNING</span>
+                    </div>
+                </div>
+                <div class="terminal-body">
+                    <div id="terminal-content" class="terminal-content">
+                        <!-- Terminal logs will be added here -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Tutorial Full Page -->
+    <div class="tutorial-fullpage" id="tutorial-overlay">
+        <button type="button" class="tutorial-arrow tutorial-arrow-left" id="tutorial-arrow-left" aria-label="Previous slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+            </svg>
+        </button>
+        <div class="tutorial-slides-container" id="tutorial-slides-container">
+            <div class="tutorial-slide" data-slide="1">
+                <div class="tutorial-content">
+                    <div class="tutorial-icon">🌱</div>
+                    <h2 class="tutorial-title">Welcome to VeridiFi</h2>
+                    <p class="tutorial-text">
+                        VeridiFi is your comprehensive platform for carbon credit management, 
+                        market analysis, and sustainable investment tracking.
+                    </p>
+                    <p class="tutorial-text">
+                        Get started by exploring the different sections of the application.
+                    </p>
+                </div>
+            </div>
+            <div class="tutorial-slide" data-slide="2">
+                <div class="tutorial-content">
+                    <div class="tutorial-icon">📊</div>
+                    <h2 class="tutorial-title">Market Analysis & Trading</h2>
+                    <p class="tutorial-text">
+                        Track carbon credit markets, analyze trends, and make informed investment decisions.
+                    </p>
+                    <p class="tutorial-text">
+                        Use the Market tab to invest in companies and trade carbon credits.
+                    </p>
+                </div>
+            </div>
+            <div class="tutorial-slide" data-slide="3">
+                <div class="tutorial-content">
+                    <div class="tutorial-icon">🌍</div>
+                    <h2 class="tutorial-title">Carbon Scanning</h2>
+                    <p class="tutorial-text">
+                        Use our advanced scanning tools to visualize and analyze carbon emissions 
+                        across different locations and companies.
+                    </p>
+                    <p class="tutorial-text">
+                        Explore the 3D globe to see real-time carbon data.
+                    </p>
+                    <button type="button" class="tutorial-btn-finish" id="tutorial-finish">
+                        Finish
+                    </button>
+                </div>
+            </div>
+        </div>
+        <button type="button" class="tutorial-arrow tutorial-arrow-right" id="tutorial-arrow-right" aria-label="Next slide">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+            </svg>
+        </button>
+        <div class="tutorial-dots-container">
+            <div class="tutorial-dots">
+                <span class="tutorial-dot active" data-slide="1"></span>
+                <span class="tutorial-dot" data-slide="2"></span>
+                <span class="tutorial-dot" data-slide="3"></span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/cesium@1.110/Build/Cesium/Cesium.js" 
+            onerror="console.error('Failed to load Cesium library')"></script>
+    <script>
+        // Wait for Cesium to load before initializing
+        window.addEventListener('load', function() {
+            if (typeof Cesium === 'undefined') {
+                console.error('Cesium failed to load');
+                const container = document.getElementById('cesium-container');
+                if (container) {
+                    container.innerHTML = 
+                        '<div style="color: white; padding: 20px; text-align: center; font-family: Arial;">' +
+                        'Error: Cesium library failed to load.<br>Please check your internet connection and refresh the page.</div>';
+                }
+            }
+        });
+    </script>
+    <script src="companies.js"></script>
+    <script src="flare-integration.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+

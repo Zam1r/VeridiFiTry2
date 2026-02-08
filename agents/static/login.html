@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - VeridiFi</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-dark);
+            padding: var(--spacing-lg);
+        }
+
+        .login-card {
+            background: var(--background-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: var(--spacing-xl);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .login-logo {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .login-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .form-label {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .form-input {
+            background: var(--background-darker);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .login-button {
+            background: var(--primary-color);
+            color: var(--background-dark);
+            border: none;
+            border-radius: 8px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: var(--spacing-md);
+        }
+
+        .login-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .form-divider {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin: var(--spacing-lg) 0;
+            color: var(--text-muted);
+        }
+
+        .form-divider::before,
+        .form-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .form-footer {
+            text-align: center;
+            margin-top: var(--spacing-lg);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: var(--negative-bg);
+            border: 1px solid var(--negative);
+            color: var(--negative);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .password-toggle {
+            position: relative;
+        }
+
+        .password-toggle-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px 8px;
+            font-size: 0.9rem;
+        }
+
+        .password-toggle-btn:hover {
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="login-logo">🌱</div>
+                <h1 class="login-title">VeridiFi</h1>
+                <p class="login-subtitle">Sign in to your account</p>
+            </div>
+
+            <div class="error-message" id="error-message"></div>
+
+            <form class="login-form" id="login-form">
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-input" 
+                        placeholder="your.email@example.com"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="password-toggle">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            class="form-input" 
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                        >
+                        <button type="button" class="password-toggle-btn" id="toggle-password">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="remember-me" name="remember-me" style="margin-right: 8px;">
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">Remember me</span>
+                    </label>
+                </div>
+
+                <button type="button" class="login-button" id="sign-in-btn">Sign In</button>
+            </form>
+
+            <div class="form-divider">or</div>
+
+            <div class="form-footer">
+                <p>Don't have an account? <a href="#" id="signup-link">Sign up</a></p>
+                <p style="margin-top: var(--spacing-sm);">
+                    <a href="#" id="forgot-password-link">Forgot your password?</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user came from landing page, if not redirect to landing
+            const fromLanding = sessionStorage.getItem('fromLanding');
+            if (!fromLanding) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Check if already logged in
+            if (localStorage.getItem('isLoggedIn') === 'true') {
+                window.location.href = 'app.html';
+                return;
+            }
+
+            // Password toggle functionality
+            const togglePassword = document.getElementById('toggle-password');
+            const passwordInput = document.getElementById('password');
+
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', () => {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+                });
+            }
+
+            // Simple sign in - no validation, just proceed
+            const signInBtn = document.getElementById('sign-in-btn');
+            const loginCard = document.querySelector('.login-card');
+            const loginContainer = document.querySelector('.login-container');
+            
+            if (signInBtn) {
+                signInBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    console.log('Sign in button clicked');
+                    
+                    // Get email if provided, otherwise use default
+                    const emailInput = document.getElementById('email');
+                    const email = emailInput ? emailInput.value || 'user@veridifi.com' : 'user@veridifi.com';
+                    const rememberMe = document.getElementById('remember-me') ? document.getElementById('remember-me').checked : false;
+
+                    // Store login state
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('userEmail', email);
+                    if (rememberMe) {
+                        localStorage.setItem('rememberMe', 'true');
+                    }
+
+                    // Clear the fromLanding flag since we're proceeding
+                    sessionStorage.removeItem('fromLanding');
+                    
+                    // Smooth fade out animation
+                    if (loginCard) {
+                        loginCard.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                        loginCard.style.opacity = '0';
+                        loginCard.style.transform = 'translateY(-20px) scale(0.95)';
+                    }
+                    
+                    if (loginContainer) {
+                        loginContainer.style.transition = 'background 0.5s ease';
+                        loginContainer.style.background = 'var(--background-dark)';
+                    }
+                    
+                    // Wait for animation to complete before redirecting
+                    setTimeout(() => {
+                        console.log('Redirecting to app...');
+                        window.location.href = 'app.html?tutorial=true';
+                    }, 500);
+                });
+            } else {
+                console.error('Sign in button not found!');
+            }
+
+            // Sign up link (placeholder)
+            const signupLink = document.getElementById('signup-link');
+            if (signupLink) {
+                signupLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Sign up functionality coming soon!');
+                });
+            }
+
+            // Forgot password link (placeholder)
+            const forgotPasswordLink = document.getElementById('forgot-password-link');
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    alert('Password reset functionality coming soon!');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+
