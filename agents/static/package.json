@@ -1,0 +1,26 @@
+{
+  "name": "carbon-credits-market",
+  "version": "1.0.0",
+  "description": "VeridiFi Application with trading, analysis, and portfolio management",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "carbon-credits",
+    "market",
+    "trading",
+    "sustainability"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
+
