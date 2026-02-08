@@ -70,3 +70,4 @@ Then use:
 const apiUrl = "https://flare-hardhat-starter.vercel.app/api/carbon-intensity";
 ```
 
+
