@@ -30,7 +30,8 @@ current_data = {
     "user_wallet_address": None,  # User's wallet address for Plasma payouts
     "user_credits": 0,  # User's carbon credits
     "user_balance": 10000,  # User's account balance (default $10,000)
-    "agents_running": True  # Track if agents are running
+    "agents_running": True,  # Track if agents are running
+    "carbon_credit_mints": []  # Track carbon credit mint events from Plasma
 }
 
 # Control flag for agent loop
@@ -153,21 +154,21 @@ def fetch_carbon_data() -> Optional[Dict]:
                 intensity = fdc_verification["intensity"]
                 fdc_round_id = fdc_verification.get("latest_round_id")
                 data_source = "FDC Verified (Flare Consensus)"
-                log_agent("Auditor", f"✅ FDC proof verified! Carbon intensity: {intensity} gCO2/kWh")
+                log_agent("Auditor", f"FDC proof verified! Carbon intensity: {intensity} gCO2/kWh")
                 
                 # Check if it's low carbon (Green)
                 if fdc_verification.get("is_low_carbon", False):
                     verification_status = "STATE_GREEN_VERIFIED"
-                    log_agent("Auditor", "🟢 STATE_GREEN_VERIFIED: Low carbon confirmed by FDC consensus!")
+                    log_agent("Auditor", "STATE_GREEN_VERIFIED: Low carbon confirmed by FDC consensus!")
                 else:
                     verification_status = "VERIFIED"
-                    log_agent("Auditor", f"⚠️ FDC verified but carbon is not low ({intensity} gCO2/kWh)")
+                    log_agent("Auditor", f"WARNING: FDC verified but carbon is not low ({intensity} gCO2/kWh)")
         except Exception as e:
             log_agent("Auditor", f"FDC verification check error: {str(e)}")
     
     # Fallback to National Grid API (but mark as UNVERIFIED)
     if not is_fdc_verified:
-        log_agent("Auditor", "⏳ No FDC-verified proof found. Waiting for Flare nodes to reach consensus...")
+        log_agent("Auditor", "No FDC-verified proof found. Waiting for Flare nodes to reach consensus...")
         log_agent("Auditor", "Fetching unverified data from National Grid API for reference...")
         try:
             response = requests.get(
@@ -180,7 +181,7 @@ def fetch_carbon_data() -> Optional[Dict]:
                 data = response.json()
                 intensity = data.get("data", [{}])[0].get("intensity", {}).get("actual")
                 data_source = "National Grid API (UNVERIFIED - No FDC Proof)"
-                log_agent("Auditor", f"⚠️ Unverified API data: {intensity} gCO2/kWh (NOT trusted)")
+                log_agent("Auditor", f"WARNING: Unverified API data: {intensity} gCO2/kWh (NOT trusted)")
             else:
                 raise Exception(f"API returned status {response.status_code}")
                 
@@ -221,15 +222,52 @@ def fetch_carbon_data() -> Optional[Dict]:
         "is_red": status == "Red"
     }
     
-    log_agent("Auditor", f"Carbon Intensity: {intensity} gCO2/kWh - Status: {status_emoji} {status}")
+    log_agent("Auditor", f"Carbon Intensity: {intensity} gCO2/kWh - Status: {status}")
     log_agent("Auditor", f"Verification Status: {verification_status}")
     
     return carbon_audit
 
 
+def generate_mock_mint_event():
+    """Generate a random mock carbon credit mint event"""
+    import random
+    
+    # Random amount between 100 and 10,000 carbon credits
+    amount = random.randint(100, 10000)
+    
+    # Generate a random transaction hash
+    tx_hash = f"0x{''.join([f'{random.randint(0, 15):x}' for _ in range(64)])}"
+    
+    # Random reasons for minting
+    reasons = [
+        "Green Energy Verified - FDC Consensus",
+        "Carbon Offset Project Completion",
+        "Renewable Energy Generation",
+        "Emission Reduction Achievement",
+        "Sustainable Practice Reward",
+        "Green Treasury Reward",
+        "Carbon Neutral Transaction",
+        "Environmental Impact Offset"
+    ]
+    reason = random.choice(reasons)
+    
+    # Record the mint
+    mint_event = record_carbon_credit_mint(
+        amount=amount,
+        tx_hash=tx_hash,
+        network="Plasma",
+        reason=reason
+    )
+    
+    return mint_event
+
+
 def update_data_loop():
     """Background thread that updates data every 1.8 seconds"""
     global current_data, agents_running
+    
+    last_mint_time = time.time()
+    mint_interval = random.randint(15, 45)  # Random interval between 15-45 seconds
     
     while True:
         if not agents_running:
@@ -256,6 +294,13 @@ def update_data_loop():
                     else:
                         current_data["fdc_verification_status"] = "UNVERIFIED"
             
+            # Generate mock mint events at random intervals
+            current_time = time.time()
+            if current_time - last_mint_time >= mint_interval:
+                generate_mock_mint_event()
+                last_mint_time = current_time
+                mint_interval = random.randint(15, 45)  # New random interval
+            
             # Make treasury decision
             if current_data["market_report"] and current_data["carbon_audit"]:
                 make_treasury_decision()
@@ -264,6 +309,28 @@ def update_data_loop():
             log_agent("System", f"Error in update loop: {str(e)}")
         
         time.sleep(1.8)  # 1.8 seconds
+
+
+def record_carbon_credit_mint(amount: float, tx_hash: str = None, network: str = "Plasma", reason: str = None):
+    """Record a carbon credit mint event when Plasma mints a carbon credit"""
+    mint_event = {
+        "timestamp": int(time.time()),
+        "amount": amount,
+        "tx_hash": tx_hash,
+        "network": network,
+        "reason": reason or "Carbon credit minted via Plasma",
+        "explorer_url": f"https://testnet.plasmascan.io/tx/{tx_hash}" if tx_hash else None
+    }
+    
+    current_data["carbon_credit_mints"].append(mint_event)
+    
+    # Keep only last 100 mint events
+    if len(current_data["carbon_credit_mints"]) > 100:
+        current_data["carbon_credit_mints"] = current_data["carbon_credit_mints"][-100:]
+    
+    log_agent("Plasma", f"Carbon Credit Minted: {amount:,.0f} CC | TX: {tx_hash[:10] if tx_hash else 'Pending'}...")
+    
+    return mint_event
 
 
 def _execute_plasma_payout():
@@ -275,11 +342,11 @@ def _execute_plasma_payout():
         # Check setup
         setup_status = check_plasma_setup()
         if not setup_status["configured"]:
-            log_agent("Settlement", f"⚠️ Plasma not configured: {setup_status['issues']}")
+            log_agent("Settlement", f"WARNING: Plasma not configured: {setup_status['issues']}")
             log_agent("Settlement", "Using mock payment. Configure Plasma to enable real payouts.")
             log_plasma_command(
                 "check_plasma_setup",
-                f"⚠️ Plasma not configured: {', '.join(setup_status['issues'])}",
+                f"WARNING: Plasma not configured: {', '.join(setup_status['issues'])}",
                 "error"
             )
             _mock_plasma_payout()
@@ -303,7 +370,7 @@ def _execute_plasma_payout():
         if current_data.get("user_wallet_address"):
             log_agent("Settlement", f"Using user-configured wallet: {recipient[:10]}...{recipient[-8:]}")
         else:
-            log_agent("Settlement", "⚠️ No user wallet configured. Using default/fallback address.")
+            log_agent("Settlement", "WARNING: No user wallet configured. Using default/fallback address.")
         
         # Log command
         log_plasma_command(
@@ -317,15 +384,25 @@ def _execute_plasma_payout():
         
         if result.get("success"):
             tx_hash = result.get("transaction_hash", "Pending")
-            log_agent("Settlement", f"✅ Plasma Payment executed successfully!")
+            log_agent("Settlement", f"Plasma Payment executed successfully!")
             log_agent("Settlement", f"TX Hash: {tx_hash}")
             log_agent("Settlement", f"Amount: {amount} USDT (Green Reward)")
-            log_agent("Settlement", "💚 Recipient received USDT with $0 gas fees!")
+            log_agent("Settlement", "Recipient received USDT with $0 gas fees!")
             
             log_plasma_command(
                 f"send_plasma_reward {recipient} {amount}",
-                f"✅ Success! TX: {tx_hash} | Amount: {amount} USDT | Gas Fee: $0.00",
+                f"Success! TX: {tx_hash} | Amount: {amount} USDT | Gas Fee: $0.00",
                 "success"
+            )
+            
+            # Record carbon credit mint when Plasma executes payout
+            # For each USDT payout, we mint equivalent carbon credits (1:1 ratio)
+            carbon_credit_amount = amount * 1000  # Convert USDT to carbon credits (1 USDT = 1000 CC)
+            record_carbon_credit_mint(
+                amount=carbon_credit_amount,
+                tx_hash=tx_hash if tx_hash != "Pending" else None,
+                network="Plasma",
+                reason=f"Green Reward Payout - {reason}"
             )
             
             current_data["settlement_status"] = {
@@ -341,28 +418,28 @@ def _execute_plasma_payout():
             }
         else:
             error = result.get("error", "Unknown error")
-            log_agent("Settlement", f"❌ Plasma payment failed: {error}")
+            log_agent("Settlement", f"ERROR: Plasma payment failed: {error}")
             log_agent("Settlement", "Falling back to mock payment...")
             log_plasma_command(
                 f"send_plasma_reward {recipient} {amount}",
-                f"❌ Failed: {error}",
+                f"ERROR: Failed: {error}",
                 "error"
             )
             _mock_plasma_payout(error)
             
     except ImportError:
-        log_agent("Settlement", "⚠️ Plasma payout module not available. Using mock payment.")
+        log_agent("Settlement", "WARNING: Plasma payout module not available. Using mock payment.")
         log_plasma_command(
             "import plasma_payout",
-            "⚠️ Plasma payout module not available. Using mock payment.",
+            "WARNING: Plasma payout module not available. Using mock payment.",
             "error"
         )
         _mock_plasma_payout()
     except Exception as e:
-        log_agent("Settlement", f"❌ Error in Plasma payout: {str(e)}")
+        log_agent("Settlement", f"ERROR: Error in Plasma payout: {str(e)}")
         log_plasma_command(
             "send_plasma_reward",
-            f"❌ Exception: {str(e)}",
+            f"ERROR: Exception: {str(e)}",
             "error"
         )
         _mock_plasma_payout(str(e))
@@ -389,7 +466,7 @@ def _mock_plasma_payout(error_msg: str = None):
     
     log_plasma_command(
         f"send_plasma_reward {recipient} {amount} (mock)",
-        f"✅ Mock Payment: TX: {tx_hash} | Amount: {amount} USDT | Note: Configure Plasma for real payouts",
+        f"Mock Payment: TX: {tx_hash} | Amount: {amount} USDT | Note: Configure Plasma for real payouts",
         "info"
     )
     
@@ -405,7 +482,7 @@ def _mock_plasma_payout(error_msg: str = None):
         "note": "Mock payment - Configure Plasma for real payouts"
     }
     
-    log_agent("Settlement", "✅ Mock Plasma Payment executed (configure Plasma for real payouts)")
+    log_agent("Settlement", "Mock Plasma Payment executed (configure Plasma for real payouts)")
 
 
 def make_treasury_decision():
@@ -441,7 +518,7 @@ def make_treasury_decision():
     if not is_fdc_verified or fdc_status != "STATE_GREEN_VERIFIED":
         if not is_fdc_verified:
             reason = "FDC proof not verified. Waiting for Flare nodes to reach consensus. AI doesn't trust unverified data."
-            log_agent("Manager", "⚠️ Carbon data is not FDC-verified. AI requires consensus before trading.")
+            log_agent("Manager", "WARNING: Carbon data is not FDC-verified. AI requires consensus before trading.")
         elif fdc_status == "VERIFIED":
             reason = f"FDC verified but carbon is not low ({intensity} gCO2/kWh). Waiting for Green energy."
         else:
@@ -467,10 +544,10 @@ def make_treasury_decision():
     if is_green and fdc_status == "STATE_GREEN_VERIFIED" and xrp_price < XRP_TARGET_PRICE:
         current_data["treasury_decision"] = {
             "decision": "EXECUTE_BUY",
-            "reason": f"✅ STATE_GREEN_VERIFIED: FDC consensus confirmed low carbon ({intensity} gCO2/kWh < {GREEN_THRESHOLD}) AND XRP Price (${xrp_price:.4f}) is below target (${XRP_TARGET_PRICE})."
+            "reason": f"STATE_GREEN_VERIFIED: FDC consensus confirmed low carbon ({intensity} gCO2/kWh < {GREEN_THRESHOLD}) AND XRP Price (${xrp_price:.4f}) is below target (${XRP_TARGET_PRICE})."
         }
         log_agent("Manager", f"DECISION: EXECUTE_BUY - FDC-verified Green energy AND XRP below target. Handoff to Settlement.")
-        log_agent("Manager", "✅ All conditions met: FDC-verified Green energy + favorable XRP price")
+        log_agent("Manager", "All conditions met: FDC-verified Green energy + favorable XRP price")
         
         # Trigger Plasma payout
         _execute_plasma_payout()
@@ -558,7 +635,7 @@ def admin_update_wallet():
         # Log the update
         log_plasma_command(
             f"admin_set_wallet {wallet_address}",
-            f"✅ Admin updated wallet: {wallet_address[:10]}...{wallet_address[-8:]}",
+            f"Admin updated wallet: {wallet_address[:10]}...{wallet_address[-8:]}",
             "success"
         )
         log_agent("Admin", f"Wallet address updated: {wallet_address[:10]}...{wallet_address[-8:]}")
@@ -668,7 +745,7 @@ def admin_pay_user():
             if not setup_status["configured"]:
                 log_plasma_command(
                     f"admin_pay_user {amount} USDT",
-                    f"⚠️ Plasma not configured: {', '.join(setup_status['issues'])}",
+                    f"WARNING: Plasma not configured: {', '.join(setup_status['issues'])}",
                     "error"
                 )
                 return jsonify({
@@ -690,7 +767,7 @@ def admin_pay_user():
                 tx_hash = result.get("transaction_hash", "Pending")
                 log_plasma_command(
                     f"admin_pay_user {amount} USDT",
-                    f"✅ Success! TX: {tx_hash} | Amount: {amount} USDT | Gas Fee: $0.00",
+                    f"Success! TX: {tx_hash} | Amount: {amount} USDT | Gas Fee: $0.00",
                     "success"
                 )
                 return jsonify({
@@ -705,7 +782,7 @@ def admin_pay_user():
                 error = result.get("error", "Unknown error")
                 log_plasma_command(
                     f"admin_pay_user {amount} USDT",
-                    f"❌ Failed: {error}",
+                    f"ERROR: Failed: {error}",
                     "error"
                 )
                 return jsonify({
@@ -716,7 +793,7 @@ def admin_pay_user():
         except ImportError:
             log_plasma_command(
                 f"admin_pay_user {amount} USDT",
-                "⚠️ Plasma payout module not available",
+                "WARNING: Plasma payout module not available",
                 "error"
             )
             return jsonify({
@@ -726,7 +803,7 @@ def admin_pay_user():
         except Exception as e:
             log_plasma_command(
                 f"admin_pay_user {amount} USDT",
-                f"❌ Exception: {str(e)}",
+                f"ERROR: Exception: {str(e)}",
                 "error"
             )
             return jsonify({
@@ -794,7 +871,7 @@ def save_user_wallet():
         # Log the wallet configuration
         log_plasma_command(
             f"set_wallet_address {wallet_address}",
-            f"✅ Wallet address configured: {wallet_address[:10]}...{wallet_address[-8:]}",
+            f"Wallet address configured: {wallet_address[:10]}...{wallet_address[-8:]}",
             "success"
         )
         
@@ -829,7 +906,7 @@ def run_swarm_loop():
             # Run one execution cycle
             run_veridifi_swarm()
             
-            log_agent("System", "✅ LangGraph agent execution complete")
+            log_agent("System", "LangGraph agent execution complete")
             
             # Wait before next execution (only if agents are still running)
             if agents_running:
@@ -839,7 +916,7 @@ def run_swarm_loop():
                 break
                 
         except Exception as e:
-            log_agent("System", f"❌ Error in LangGraph agents: {str(e)}")
+            log_agent("System", f"ERROR: Error in LangGraph agents: {str(e)}")
             swarm_running = False
             time.sleep(5)  # Wait before retrying
 
@@ -864,7 +941,7 @@ def start_agents():
         started_components.append("LangGraph agents")
     
     if started_components:
-        log_agent("System", f"✅ Agents started - {' and '.join(started_components)} active")
+        log_agent("System", f"Agents started - {' and '.join(started_components)} active")
         return jsonify({
             "status": "success",
             "message": f"Agents started - {' and '.join(started_components)} active",
@@ -1100,6 +1177,71 @@ def scan_company():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route('/api/carbon-credits/mints', methods=['GET'])
+def get_carbon_credit_mints():
+    """Get carbon credit mint events and statistics"""
+    try:
+        mints = current_data.get("carbon_credit_mints", [])
+        
+        # Calculate totals
+        total_minted = sum(mint["amount"] for mint in mints)
+        total_in_circulation = total_minted  # For now, assume all minted credits are in circulation
+        
+        # Sort by timestamp (newest first)
+        sorted_mints = sorted(mints, key=lambda x: x["timestamp"], reverse=True)
+        
+        return jsonify({
+            "success": True,
+            "mints": sorted_mints[:50],  # Return last 50 mints
+            "total_minted": total_minted,
+            "total_in_circulation": total_in_circulation,
+            "mint_count": len(mints),
+            "timestamp": int(time.time())
+        })
+    except Exception as e:
+        log_agent("System", f"Error fetching carbon credit mints: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@app.route('/api/carbon-credits/mint', methods=['POST'])
+def create_carbon_credit_mint():
+    """Create a new carbon credit mint event (called when Plasma mints a carbon credit)"""
+    try:
+        data = request.get_json()
+        amount = data.get("amount")
+        tx_hash = data.get("tx_hash")
+        network = data.get("network", "Plasma")
+        reason = data.get("reason")
+        
+        if amount is None:
+            return jsonify({"success": False, "error": "Amount is required"}), 400
+        
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                return jsonify({"success": False, "error": "Amount must be greater than 0"}), 400
+        except (ValueError, TypeError):
+            return jsonify({"success": False, "error": "Amount must be a valid number"}), 400
+        
+        mint_event = record_carbon_credit_mint(amount, tx_hash, network, reason)
+        
+        return jsonify({
+            "success": True,
+            "mint_event": mint_event,
+            "message": f"Carbon credit mint recorded: {amount:,.0f} CC",
+            "timestamp": int(time.time())
+        })
+    except Exception as e:
+        log_agent("System", f"Error creating carbon credit mint: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
 @app.route('/api/health')
 def health():
     """Health check endpoint"""
@@ -1113,7 +1255,51 @@ def health():
     })
 
 
+def seed_initial_mock_mints():
+    """Seed some initial mock mint events for demonstration"""
+    import random
+    
+    log_agent("System", "Seeding initial mock carbon credit mints...")
+    
+    # Generate 5-10 initial mock mints
+    num_initial_mints = random.randint(5, 10)
+    for i in range(num_initial_mints):
+        # Stagger timestamps over the last hour
+        timestamp_offset = random.randint(0, 3600)  # Random time in last hour
+        amount = random.randint(500, 5000)
+        tx_hash = f"0x{''.join([f'{random.randint(0, 15):x}' for _ in range(64)])}"
+        
+        reasons = [
+            "Green Energy Verified - FDC Consensus",
+            "Carbon Offset Project Completion",
+            "Renewable Energy Generation",
+            "Emission Reduction Achievement",
+            "Sustainable Practice Reward",
+            "Green Treasury Reward",
+            "Carbon Neutral Transaction",
+            "Environmental Impact Offset"
+        ]
+        reason = random.choice(reasons)
+        
+        mint_event = {
+            "timestamp": int(time.time()) - timestamp_offset,
+            "amount": amount,
+            "tx_hash": tx_hash,
+            "network": "Plasma",
+            "reason": reason,
+            "explorer_url": f"https://testnet.plasmascan.io/tx/{tx_hash}"
+        }
+        
+        current_data["carbon_credit_mints"].append(mint_event)
+    
+    total_minted = sum(mint["amount"] for mint in current_data["carbon_credit_mints"])
+    log_agent("System", f"Seeded {num_initial_mints} mock mints. Total in circulation: {total_minted:,} CC")
+
+
 if __name__ == '__main__':
+    # Seed initial mock mints
+    seed_initial_mock_mints()
+    
     # Start background update thread
     update_thread = threading.Thread(target=update_data_loop, daemon=True)
     update_thread.start()
@@ -1121,16 +1307,18 @@ if __name__ == '__main__':
     log_agent("System", "Dashboard server starting...")
     log_agent("System", f"PriceOracle: {PRICE_ORACLE_ADDRESS or 'Not configured'}")
     log_agent("System", f"VeridiFiCore: {VERIDIFI_CORE_ADDRESS or 'Not configured'}")
-    log_agent("System", "✅ Agents initialized and running")
+    log_agent("System", "Agents initialized and running")
+    log_agent("System", "Mock carbon credit minting enabled - random mints every 15-45 seconds")
     
     # Run Flask server
     print("\n" + "=" * 60)
-    print("🌱 Green Treasury Dashboard Server")
+    print("Green Treasury Dashboard Server")
     print("=" * 60)
     print("Server running at: http://localhost:3000")
     print("Dashboard available at: http://localhost:3000")
     print("API endpoint: http://localhost:3000/api/data")
     print("Control endpoints: /api/agents/start, /api/agents/stop")
+    print("Mock carbon credit minting: Enabled (random mints every 15-45s)")
     print("=" * 60 + "\n")
     
     app.run(host='0.0.0.0', port=3000, debug=True)
