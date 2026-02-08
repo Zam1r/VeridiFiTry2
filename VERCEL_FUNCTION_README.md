@@ -137,3 +137,4 @@ This provides a clean, stripped-down endpoint that returns only the intensity va
 - Minimal headers to avoid bot detection
 - Returns raw JSON (no extra metadata)
 
+
