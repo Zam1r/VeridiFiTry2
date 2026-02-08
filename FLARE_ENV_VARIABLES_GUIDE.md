@@ -148,3 +148,4 @@ COSTON2_RPC_URL=
 - [Flare Developer Hub](https://dev.flare.network/)
 - [Flare Network Documentation](https://docs.flare.network/)
 - [Flare Explorer](https://flare-explorer.flare.network)
+

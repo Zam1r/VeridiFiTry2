@@ -60,3 +60,4 @@ If you prefer, you could also add a dummy build script to `package.json`:
 
 But the `vercel.json` approach is cleaner for serverless-only deployments.
 
+
